@@ -1,0 +1,169 @@
+{
+  "date": "2026-07-23",
+  "games": [
+    {
+      "game_pk": 824893,
+      "home_team": "Atlanta Braves",
+      "away_team": "San Diego Padres",
+      "p_home": 0.7433767501312509,
+      "best_side": "home",
+      "best_edge": 0.04857155532605606,
+      "stake_units": 2.0,
+      "stake_price": 1.38,
+      "stake_reasons": [
+        "edge modéré et cohérent (pas un outlier)",
+        "Unibet et Pinnacle d'accord entre eux",
+        "line-up réel confirmé côté favori de la value"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5936852176686335,
+        "form_adj": 0.011279999999999997,
+        "pitcher_quality_adj": 0.0936,
+        "adversity_adj": 0.00958222222222223,
+        "arsenal_adj": 0.0012821021873227006,
+        "home_road_adj": 0.0355,
+        "daynight_adj": 0.024,
+        "platoon_adj": -0.00045000000000000595,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.004469458613594319,
+        "batters_faced_adj": -0.002150000000000001,
+        "rest_adj": 0.0,
+        "bullpen_adj": -0.01015,
+        "h2h_adj": -0.008333333333333335
+      }
+    },
+    {
+      "game_pk": 824406,
+      "home_team": "Cleveland Guardians",
+      "away_team": "Minnesota Twins",
+      "p_home": 0.6086327015799448,
+      "best_side": "home",
+      "best_edge": 0.0315182737192482,
+      "stake_units": 2.0,
+      "stake_price": 1.7,
+      "stake_reasons": [
+        "edge modéré et cohérent (pas un outlier)",
+        "Unibet et Pinnacle d'accord entre eux",
+        "line-up réel confirmé côté favori de la value"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5389439207541142,
+        "form_adj": 0.004680000000000004,
+        "pitcher_quality_adj": 0.008449999999999994,
+        "adversity_adj": -0.005404444444444448,
+        "arsenal_adj": -0.002865097820672463,
+        "home_road_adj": 0.027499999999999993,
+        "daynight_adj": 0.012599999999999998,
+        "platoon_adj": -0.0005000000000000006,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.0038458469004714526,
+        "batters_faced_adj": -0.003150857142857144,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0287,
+        "h2h_adj": -0.004166666666666669
+      }
+    },
+    {
+      "game_pk": 822785,
+      "home_team": "Toronto Blue Jays",
+      "away_team": "Tampa Bay Rays",
+      "p_home": 0.19454043054350906,
+      "best_side": "away",
+      "best_edge": 0.2927044674156747,
+      "stake_units": 0.5,
+      "stake_price": 1.88,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": true,
+      "home_lineup_used": false,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.3691542445182516,
+        "form_adj": -0.015959999999999995,
+        "pitcher_quality_adj": -0.17355,
+        "adversity_adj": -0.004639999999999996,
+        "arsenal_adj": 0.0,
+        "home_road_adj": 0.10500000000000001,
+        "daynight_adj": 0.00960000000000001,
+        "platoon_adj": -0.00025000000000000575,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.008247147308075773,
+        "batters_faced_adj": 0.0,
+        "rest_adj": 0.0,
+        "bullpen_adj": -0.0574,
+        "h2h_adj": -0.029166666666666667
+      }
+    },
+    {
+      "game_pk": 823042,
+      "home_team": "St. Louis Cardinals",
+      "away_team": "Arizona Diamondbacks",
+      "p_home": 0.5426762517857292,
+      "best_side": "home",
+      "best_edge": 0.02104775305799378,
+      "stake_units": 0.0,
+      "stake_price": null,
+      "stake_reasons": [],
+      "books_agree": true,
+      "home_lineup_used": false,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.4949939927913495,
+        "form_adj": -0.0006000000000000005,
+        "pitcher_quality_adj": 0.022750000000000034,
+        "adversity_adj": -0.0003200000000000002,
+        "arsenal_adj": 0.0,
+        "home_road_adj": 0.051500000000000004,
+        "daynight_adj": -0.03839999999999999,
+        "platoon_adj": 0.0011499999999999956,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.002114407672286961,
+        "batters_faced_adj": 0.0,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.02205,
+        "h2h_adj": -0.008333333333333335
+      }
+    },
+    {
+      "game_pk": 824247,
+      "home_team": "Detroit Tigers",
+      "away_team": "Kansas City Royals",
+      "p_home": 0.5693030381287061,
+      "best_side": "away",
+      "best_edge": 0.09660605278038487,
+      "stake_units": 2.0,
+      "stake_price": 2.75,
+      "stake_reasons": [
+        "edge fort et cohérent (pas un outlier)",
+        "Unibet et Pinnacle d'accord entre eux"
+      ],
+      "books_agree": true,
+      "home_lineup_used": false,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.5545249663762707,
+        "form_adj": 0.006479999999999999,
+        "pitcher_quality_adj": 0.11765,
+        "adversity_adj": -0.00024000000000000025,
+        "arsenal_adj": 0.0,
+        "home_road_adj": -0.030999999999999996,
+        "daynight_adj": -0.008400000000000001,
+        "platoon_adj": 0.00030000000000000024,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.00519526158089802,
+        "batters_faced_adj": 0.0,
+        "rest_adj": 0.0,
+        "bullpen_adj": -0.07314999999999999,
+        "h2h_adj": 0.008333333333333331
+      }
+    }
+  ],
+  "collection_errors": []
+}

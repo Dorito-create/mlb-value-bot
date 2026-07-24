@@ -1,0 +1,38 @@
+name: Telegram Commands
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # toutes les 5 minutes -- le minimum autorisé par GitHub
+  workflow_dispatch:          # permet aussi un lancement manuel depuis l'onglet Actions
+
+concurrency:
+  group: telegram-commands
+  cancel-in-progress: false   # si une exécution est encore en cours, la suivante attend plutôt que de se chevaucher
+
+jobs:
+  check-commands:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Vérifier les commandes Telegram
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python handle_telegram_commands.py
+
+      - name: Sauvegarder les données mises à jour (log, bankroll, offset)
+        run: |
+          git config user.name "mlb-value-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "Mise à jour automatique des données [skip ci]"
+          git push

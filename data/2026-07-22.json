@@ -1,0 +1,176 @@
+{
+  "date": "2026-07-22",
+  "games": [
+    {
+      "game_pk": 823518,
+      "home_team": "New York Yankees",
+      "away_team": "Pittsburgh Pirates",
+      "p_home": 0.5176299138855339,
+      "best_side": "away",
+      "best_edge": 0.11332246706684701,
+      "stake_units": 2.0,
+      "stake_price": 2.55
+    },
+    {
+      "game_pk": 824735,
+      "home_team": "Boston Red Sox",
+      "away_team": "Baltimore Orioles",
+      "p_home": 0.7155004229958996,
+      "best_side": "home",
+      "best_edge": 0.11991218770178191,
+      "stake_units": 2.0,
+      "stake_price": 1.61
+    },
+    {
+      "game_pk": 824083,
+      "home_team": "Kansas City Royals",
+      "away_team": "San Francisco Giants",
+      "p_home": 0.3680128015862072,
+      "best_side": "away",
+      "best_edge": 0.0851517553758181,
+      "stake_units": 2.0,
+      "stake_price": 1.75
+    },
+    {
+      "game_pk": 823761,
+      "home_team": "Milwaukee Brewers",
+      "away_team": "New York Mets",
+      "p_home": 0.8451702902334877,
+      "best_side": "home",
+      "best_edge": 0.25853662686715095,
+      "stake_units": 0.5,
+      "stake_price": 1.57
+    },
+    {
+      "game_pk": 824327,
+      "home_team": "Colorado Rockies",
+      "away_team": "Washington Nationals",
+      "p_home": 0.46295504627192613,
+      "best_side": "home",
+      "best_edge": 0.029371086372176836,
+      "stake_units": 0.0,
+      "stake_price": null
+    },
+    {
+      "game_pk": 825055,
+      "home_team": "Arizona Diamondbacks",
+      "away_team": "Athletics",
+      "p_home": 0.3546674642509242,
+      "best_side": "away",
+      "best_edge": 0.18710468764780996,
+      "stake_units": 0.5,
+      "stake_price": 2.12
+    },
+    {
+      "game_pk": 823110,
+      "home_team": "Seattle Mariners",
+      "away_team": "Cincinnati Reds",
+      "p_home": 0.7573610880685431,
+      "best_side": "home",
+      "best_edge": 0.1672376312784195,
+      "stake_units": 0.5,
+      "stake_price": 1.63
+    },
+    {
+      "game_pk": 824004,
+      "home_team": "Los Angeles Angels",
+      "away_team": "St. Louis Cardinals",
+      "p_home": 0.42149014436358706,
+      "best_side": "away",
+      "best_edge": 0.1253452986743877,
+      "stake_units": 2.0,
+      "stake_price": 2.07
+    },
+    {
+      "game_pk": 824408,
+      "home_team": "Cleveland Guardians",
+      "away_team": "Minnesota Twins",
+      "p_home": 0.6035575503828127,
+      "best_side": "home",
+      "best_edge": 0.065486484392965,
+      "stake_units": 2.0,
+      "stake_price": 1.78
+    },
+    {
+      "game_pk": 823438,
+      "home_team": "Philadelphia Phillies",
+      "away_team": "Los Angeles Dodgers",
+      "p_home": 0.3721915429311742,
+      "best_side": "away",
+      "best_edge": 0.09735160427694778,
+      "stake_units": 2.0,
+      "stake_price": 1.82
+    },
+    {
+      "game_pk": 823519,
+      "home_team": "New York Yankees",
+      "away_team": "Pittsburgh Pirates",
+      "p_home": 0.5414477142135329,
+      "best_side": "away",
+      "best_edge": 0.08950466673884805,
+      "stake_units": 2.0,
+      "stake_price": 2.55
+    },
+    {
+      "game_pk": 822784,
+      "home_team": "Toronto Blue Jays",
+      "away_team": "Tampa Bay Rays",
+      "p_home": 0.3227568765364274,
+      "best_side": "away",
+      "best_edge": 0.17724312346357263,
+      "stake_units": 0.5,
+      "stake_price": 1.88
+    },
+    {
+      "game_pk": 824732,
+      "home_team": "Boston Red Sox",
+      "away_team": "Baltimore Orioles",
+      "p_home": 0.4831669765616785,
+      "best_side": "away",
+      "best_edge": 0.11242125873243919,
+      "stake_units": 2.0,
+      "stake_price": 2.35
+    },
+    {
+      "game_pk": 824896,
+      "home_team": "Atlanta Braves",
+      "away_team": "San Diego Padres",
+      "p_home": 0.578798658731012,
+      "best_side": "home",
+      "best_edge": 0.062259218527449756,
+      "stake_units": 2.0,
+      "stake_price": 1.82
+    },
+    {
+      "game_pk": 822873,
+      "home_team": "Texas Rangers",
+      "away_team": "Chicago White Sox",
+      "p_home": 0.5889600006826679,
+      "best_side": "home",
+      "best_edge": 0.0915110210908312,
+      "stake_units": 2.0,
+      "stake_price": 1.92
+    },
+    {
+      "game_pk": 824650,
+      "home_team": "Chicago Cubs",
+      "away_team": "Detroit Tigers",
+      "p_home": 0.6822759550900201,
+      "best_side": "home",
+      "best_edge": 0.14928103123215208,
+      "stake_units": 2.0,
+      "stake_price": 1.82
+    },
+    {
+      "game_pk": 824166,
+      "home_team": "Houston Astros",
+      "away_team": "Miami Marlins",
+      "p_home": 0.3991482689034578,
+      "best_side": "away",
+      "best_edge": 0.11360683313735853,
+      "stake_units": 2.0,
+      "stake_price": 2.02
+    }
+  ],
+  "collection_errors": []
+}

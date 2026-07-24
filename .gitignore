@@ -1,0 +1,7 @@
+# NE JAMAIS pousser ce fichier -- il contient tes tokens/clés en clair.
+# Sur GitHub, ces secrets vont dans Settings > Secrets and variables > Actions.
+.env
+
+__pycache__/
+*.pyc
+.DS_Store

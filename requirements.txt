@@ -1,0 +1,15 @@
+requests
+python-dotenv
+
+# Nécessaire sur Windows pour zoneinfo (heure de Paris affichée sur chaque
+# match) -- Windows n'a pas de base de données de fuseaux horaires
+# intégrée comme Linux/Mac.
+tzdata
+
+# Réintroduit pour l'ajustement arsenal de lancers (pitch_arsenal.py) --
+# UNIQUEMENT pour ses fonctions qui tapent Baseball Savant directement
+# (baseballsavant.mlb.com), pas FanGraphs (qui bloque les accès
+# automatisés, voir get_matchup_stats.py). Fonctionnalité expérimentale :
+# si le chargement échoue, l'ajustement retombe à 0.0 sans rien casser.
+pybaseball
+pandas
