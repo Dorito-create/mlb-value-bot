@@ -5,6 +5,9 @@ on:
     - cron: '*/5 * * * *'   # toutes les 5 minutes -- le minimum autorisé par GitHub
   workflow_dispatch:          # permet aussi un lancement manuel depuis l'onglet Actions
 
+permissions:
+  contents: write   # nécessaire pour que le job puisse "git push" les données à la fin
+
 concurrency:
   group: telegram-commands
   cancel-in-progress: false   # si une exécution est encore en cours, la suivante attend plutôt que de se chevaucher
