@@ -7,9 +7,9 @@
       "away_team": "Colorado Rockies",
       "p_home": 0.926501560909986,
       "best_side": "home",
-      "best_edge": 0.2235101079185331,
+      "best_edge": 0.20865923725853386,
       "stake_units": 0.5,
-      "stake_price": 1.35,
+      "stake_price": 1.33,
       "stake_reasons": [
         "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
       ],
@@ -39,7 +39,7 @@
       "away_team": "Kansas City Royals",
       "p_home": 0.5951018384950874,
       "best_side": "away",
-      "best_edge": 0.10317402357387817,
+      "best_edge": 0.10446897695555646,
       "stake_units": 2.0,
       "stake_price": 3.4,
       "stake_reasons": [
@@ -72,7 +72,7 @@
       "away_team": "Chicago Cubs",
       "p_home": 0.40155820885309035,
       "best_side": "away",
-      "best_edge": 0.09844179114690965,
+      "best_edge": 0.100992811555073,
       "stake_units": 2.0,
       "stake_price": 2.0,
       "stake_reasons": [
@@ -105,7 +105,7 @@
       "away_team": "Arizona Diamondbacks",
       "p_home": 0.5346270401231857,
       "best_side": "home",
-      "best_edge": 0.07386754645229965,
+      "best_edge": 0.07755633305247872,
       "stake_units": 2.0,
       "stake_price": 2.1,
       "stake_reasons": [
@@ -138,7 +138,7 @@
       "away_team": "New York Yankees",
       "p_home": 0.3802208345985124,
       "best_side": "away",
-      "best_edge": 0.17028421590653808,
+      "best_edge": 0.17393533668612232,
       "stake_units": 0.5,
       "stake_price": 2.15,
       "stake_reasons": [
@@ -205,7 +205,7 @@
       "best_side": "away",
       "best_edge": 0.1745388066718523,
       "stake_units": 0.5,
-      "stake_price": 1.74,
+      "stake_price": 1.72,
       "stake_reasons": [
         "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
       ],
@@ -235,7 +235,7 @@
       "away_team": "Cleveland Guardians",
       "p_home": 0.710804115511395,
       "best_side": "home",
-      "best_edge": 0.17527112058753713,
+      "best_edge": 0.17409525475190135,
       "stake_units": 0.5,
       "stake_price": 1.71,
       "stake_reasons": [
@@ -267,7 +267,7 @@
       "away_team": "San Diego Padres",
       "p_home": 0.7397379776032257,
       "best_side": "home",
-      "best_edge": 0.18923292709817507,
+      "best_edge": 0.1881006980062483,
       "stake_units": 0.5,
       "stake_price": 1.74,
       "stake_reasons": [
@@ -301,7 +301,7 @@
       "best_side": "home",
       "best_edge": 0.10089057607005658,
       "stake_units": 2.0,
-      "stake_price": 1.82,
+      "stake_price": 1.8,
       "stake_reasons": [
         "edge fort et cohérent (pas un outlier)",
         "Unibet et Pinnacle d'accord entre eux"
@@ -332,9 +332,9 @@
       "away_team": "Houston Astros",
       "p_home": 0.7383223403286067,
       "best_side": "home",
-      "best_edge": 0.18781728982355606,
+      "best_edge": 0.18920395241928678,
       "stake_units": 0.5,
-      "stake_price": 1.74,
+      "stake_price": 1.77,
       "stake_reasons": [
         "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
       ],
@@ -364,7 +364,7 @@
       "away_team": "Seattle Mariners",
       "p_home": 0.5025536633548652,
       "best_side": "home",
-      "best_edge": 0.02296182662017132,
+      "best_edge": 0.019093103558427527,
       "stake_units": 0.0,
       "stake_price": null,
       "stake_reasons": [],
