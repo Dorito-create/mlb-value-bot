@@ -1,5 +1,5 @@
 {
-  "balance": 82.13999999999997,
+  "balance": 76.67999999999996,
   "history": [
     {
       "date": "2026-07-21",
@@ -550,6 +550,116 @@
       "won": false,
       "pnl": -2.0,
       "balance_after": 82.13999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 822950,
+      "team": "Tampa Bay Rays",
+      "units": 2.0,
+      "price": 1.78,
+      "won": true,
+      "pnl": 1.56,
+      "balance_after": 83.69999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 822706,
+      "team": "Arizona Diamondbacks",
+      "units": 0.5,
+      "price": 1.8,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 83.19999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823354,
+      "team": "Pittsburgh Pirates",
+      "units": 2.0,
+      "price": 1.79,
+      "won": true,
+      "pnl": 1.58,
+      "balance_after": 84.77999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 824246,
+      "team": "Detroit Tigers",
+      "units": 2.0,
+      "price": 1.5,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 82.77999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823599,
+      "team": "Los Angeles Dodgers",
+      "units": 2.0,
+      "price": 1.61,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 80.77999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823840,
+      "team": "Miami Marlins",
+      "units": 2.0,
+      "price": 1.75,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 78.77999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823678,
+      "team": "Minnesota Twins",
+      "units": 2.0,
+      "price": 1.66,
+      "won": true,
+      "pnl": 1.3199999999999998,
+      "balance_after": 80.09999999999997
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 824572,
+      "team": "Chicago White Sox",
+      "units": 0.5,
+      "price": 1.89,
+      "won": true,
+      "pnl": 0.44499999999999995,
+      "balance_after": 80.54499999999996
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823755,
+      "team": "Milwaukee Brewers",
+      "units": 0.5,
+      "price": 1.27,
+      "won": true,
+      "pnl": 0.135,
+      "balance_after": 80.67999999999996
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 823028,
+      "team": "St. Louis Cardinals",
+      "units": 2.0,
+      "price": 1.74,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 78.67999999999996
+    },
+    {
+      "date": "2026-07-26",
+      "game_pk": 822870,
+      "team": "Texas Rangers",
+      "units": 2.0,
+      "price": 1.89,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 76.67999999999996
     }
   ]
 }
