@@ -1,5 +1,5 @@
 {
-  "balance": 76.67999999999996,
+  "balance": 81.87999999999995,
   "history": [
     {
       "date": "2026-07-21",
@@ -660,6 +660,106 @@
       "won": false,
       "pnl": -2.0,
       "balance_after": 76.67999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 822868,
+      "team": "Texas Rangers",
+      "units": 2.0,
+      "price": 2.15,
+      "won": true,
+      "pnl": 2.3,
+      "balance_after": 78.97999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 823353,
+      "team": "Arizona Diamondbacks",
+      "units": 2.0,
+      "price": 1.96,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 76.97999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 823839,
+      "team": "Miami Marlins",
+      "units": 2.0,
+      "price": 2.5,
+      "won": true,
+      "pnl": 3.0,
+      "balance_after": 79.97999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 822705,
+      "team": "Washington Nationals",
+      "units": 0.5,
+      "price": 1.8,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 79.47999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 823597,
+      "team": "Atlanta Braves",
+      "units": 2.0,
+      "price": 1.85,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 77.47999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 824570,
+      "team": "New York Yankees",
+      "units": 2.0,
+      "price": 1.68,
+      "won": true,
+      "pnl": 1.3599999999999999,
+      "balance_after": 78.83999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 823025,
+      "team": "St. Louis Cardinals",
+      "units": 2.0,
+      "price": 2.02,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 76.83999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 824001,
+      "team": "Houston Astros",
+      "units": 2.0,
+      "price": 1.83,
+      "won": true,
+      "pnl": 1.6600000000000001,
+      "balance_after": 78.49999999999996
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 824977,
+      "team": "Boston Red Sox",
+      "units": 2.0,
+      "price": 1.55,
+      "won": true,
+      "pnl": 1.1,
+      "balance_after": 79.59999999999995
+    },
+    {
+      "date": "2026-07-27",
+      "game_pk": 823195,
+      "team": "San Francisco Giants",
+      "units": 2.0,
+      "price": 2.14,
+      "won": true,
+      "pnl": 2.2800000000000002,
+      "balance_after": 81.87999999999995
     }
   ]
 }
