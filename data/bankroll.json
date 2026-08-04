@@ -1,5 +1,5 @@
 {
-  "balance": 76.62999999999994,
+  "balance": 77.93999999999993,
   "history": [
     {
       "date": "2026-07-21",
@@ -1240,6 +1240,66 @@
       "won": true,
       "pnl": 3.0999999999999996,
       "balance_after": 76.62999999999994
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 823431,
+      "team": "Washington Nationals",
+      "units": 0.5,
+      "price": 2.23,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 76.12999999999994
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 823520,
+      "team": "St. Louis Cardinals",
+      "units": 2.0,
+      "price": 2.8,
+      "won": true,
+      "pnl": 3.5999999999999996,
+      "balance_after": 79.72999999999993
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 824647,
+      "team": "Los Angeles Dodgers",
+      "units": 2.0,
+      "price": 1.79,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 77.72999999999993
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 822867,
+      "team": "San Francisco Giants",
+      "units": 2.0,
+      "price": 1.97,
+      "won": true,
+      "pnl": 1.94,
+      "balance_after": 79.66999999999993
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 824160,
+      "team": "Houston Astros",
+      "units": 2.0,
+      "price": 1.76,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 77.66999999999993
+    },
+    {
+      "date": "2026-08-03",
+      "game_pk": 824324,
+      "team": "Tampa Bay Rays",
+      "units": 0.5,
+      "price": 1.54,
+      "won": true,
+      "pnl": 0.27,
+      "balance_after": 77.93999999999993
     }
   ]
 }
