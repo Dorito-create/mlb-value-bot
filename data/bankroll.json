@@ -1,5 +1,5 @@
 {
-  "balance": 80.84499999999993,
+  "balance": 79.03499999999991,
   "history": [
     {
       "date": "2026-07-21",
@@ -1490,6 +1490,96 @@
       "won": true,
       "pnl": 0.32999999999999996,
       "balance_after": 80.84499999999993
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 824804,
+      "team": "Baltimore Orioles",
+      "units": 2.0,
+      "price": 1.51,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 78.84499999999993
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 824481,
+      "team": "Athletics",
+      "units": 0.5,
+      "price": 2.35,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 78.34499999999993
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 823754,
+      "team": "Milwaukee Brewers",
+      "units": 0.5,
+      "price": 1.73,
+      "won": true,
+      "pnl": 0.365,
+      "balance_after": 78.70999999999992
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 824664,
+      "team": "Toronto Blue Jays",
+      "units": 2.0,
+      "price": 1.81,
+      "won": false,
+      "pnl": -2.0,
+      "balance_after": 76.70999999999992
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 823105,
+      "team": "Seattle Mariners",
+      "units": 0.5,
+      "price": 1.8,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 76.20999999999992
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 823430,
+      "team": "Philadelphia Phillies",
+      "units": 2.0,
+      "price": 1.3,
+      "won": true,
+      "pnl": 0.6000000000000001,
+      "balance_after": 76.80999999999992
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 824729,
+      "team": "Boston Red Sox",
+      "units": 2.0,
+      "price": 1.51,
+      "won": true,
+      "pnl": 1.02,
+      "balance_after": 77.82999999999991
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 824885,
+      "team": "Atlanta Braves",
+      "units": 0.5,
+      "price": 1.67,
+      "won": true,
+      "pnl": 0.33499999999999996,
+      "balance_after": 78.1649999999999
+    },
+    {
+      "date": "2026-08-06",
+      "game_pk": 825053,
+      "team": "San Diego Padres",
+      "units": 1.0,
+      "price": 1.87,
+      "won": true,
+      "pnl": 0.8700000000000001,
+      "balance_after": 79.03499999999991
     }
   ]
 }
