@@ -123,12 +123,51 @@ VALUE_TIER_SUSPECT = 0.15  # au-delà, un edge aussi large vs Pinnacle est plus 
 
 BOOKS_AGREE_TOLERANCE = 0.05  # Betclic/Unibet et Pinnacle jugés "d'accord" si leurs probas dévigorées sont à <5 pts
 
-# Signal titulaire : les paliers de mise ci-dessous en dépendent directement
-# depuis l'analyse du 5 août. |pitcher_quality_adj| < 5 pts = zone qui a
-# perdu -28.97u sur 43 picks (edge porté par d'autres facteurs, peu
-# fiable) ; >= 10 pts = zone la plus rentable observée.
-PITCHER_SIGNAL_MIN = 0.05
-PITCHER_SIGNAL_STRONG = 0.10
+# Score de confiance combiné : les paliers de mise ci-dessous en dépendent.
+# Depuis le 6 août, ce n'est plus le titulaire seul qui pilote la mise --
+# c'est une somme pondérée de plusieurs composantes, avec des coefficients
+# qui reflètent ce que l'analyse du 5 août (et le classement du 6 août) a
+# montré comme fiable ou pas. |pitcher_quality_adj| reste le signal le
+# plus validé (poids 1.0, seul facteur testé empiriquement jusqu'ici) ;
+# les autres comptent, mais avec un poids réduit tant qu'on n'a pas
+# assez de recul dessus individuellement.
+CONFIDENCE_WEIGHTS = {
+    # Analyse par paliers du 6 août sur 137 picks (voir README) :
+    "pitcher_quality_adj": 1.0,   # Tier 1 -- validé, mais pas monotone (culmine 5-10 pts, redescend au-delà)
+    "home_road_adj": 1.0,         # Tier 1 -- promu : tendance la plus nette de tout le modèle (42%->70% par palier)
+    "form_adj": 0.4,               # Tier 2 -- tendance positive, échantillon haut encore petit (15 picks)
+    "h2h_adj": 0.35,               # Tier 2 -- idem, échantillon haut encore plus petit (8 picks)
+    "adversity_adj": 0.3,          # Aucune variance observée (>2 pts quasi jamais) -- pas de preuve, poids inchangé
+    "platoon_adj": 0.25,           # Idem -- pas assez de données pour juger
+    "playstyle_adj": 0.25,         # Idem
+    "arsenal_adj": 0.15,           # Idem -- expérimental, line-up réel seulement
+    "batters_faced_adj": 0.15,     # Idem -- expérimental, line-up réel seulement
+}
+CONFIDENCE_SCORE_MIN = 0.05     # sous ce seuil, la mise est plafonnée à 0.5u (comme l'ancien "duel neutre")
+CONFIDENCE_SCORE_STRONG = 0.12  # au-delà, la zone la plus rentable observée -- ouvre la porte au 2u
+
+# Le 2u exige maintenant AUSSI que le score fort ne repose pas sur une
+# seule composante : au moins MULTI_FACTOR_MIN_CONTRIBUTORS doivent
+# individuellement dépasser ce seuil brut (avant pondération). Un chiffre
+# isolé peut être un artefact ; plusieurs qui s'accordent, beaucoup moins.
+INDIVIDUAL_CONTRIBUTION_MIN = 0.02
+MULTI_FACTOR_MIN_CONTRIBUTORS = 2
+
+
+def compute_confidence_score(model: dict) -> float:
+    """Somme pondérée de plusieurs composantes du modèle -- remplace le
+    signal titulaire seul comme base de la mise, tout en lui gardant le
+    poids le plus fort (seul facteur validé empiriquement pour l'instant).
+    """
+    return sum(weight * abs(model.get(name, 0.0)) for name, weight in CONFIDENCE_WEIGHTS.items())
+
+
+def count_meaningful_contributors(model: dict) -> int:
+    """Nombre de composantes qui contribuent chacune de façon notable
+    (brut, avant pondération) -- sert à vérifier que le score fort n'est
+    pas porté par une seule d'entre elles.
+    """
+    return sum(1 for name in CONFIDENCE_WEIGHTS if abs(model.get(name, 0.0)) >= INDIVIDUAL_CONTRIBUTION_MIN)
 
 # Système d'unités pour le suivi : 1u = 1% d'une bankroll de suivi fictive
 # de 100 (départ), indépendant de ta grille euro réelle ci-dessous.
@@ -645,11 +684,19 @@ def compute_ev_pct(prob: float | None, price: float | None) -> float | None:
 def format_selection_block(model: dict, value: dict, units: float, reasons: list[str]) -> str:
     """Une sélection unique et nette -- plus de choix entre favori et
     value à interpréter. Cote juste (fair odds) du modèle vs cote réelle
-    jouable -> EV% -> décision, exactement comme "la value passe sur les
-    Red Sox si la cote dépasse X".
+    jouable -> EV% -> décision.
+
+    Depuis le 6 août, toute value confirmée vs Pinnacle reçoit une mise
+    (0.5u minimum) et reste suivie dans la bankroll -- y compris quand
+    l'EV au prix réellement jouable est faible/négatif ou inconnu (mise
+    réduite à 0.5u dans ce cas, voir stake_units). C'est un choix
+    volontaire : si l'EV réel est négatif, ce sous-groupe perdra un peu
+    d'argent en moyenne dans le suivi -- c'est la définition même d'un EV
+    négatif, pas une question d'opinion.
     """
-    if units <= 0.0:
-        return "⚪ Aucune sélection ce soir sur ce match.\n"
+    edge = value.get("best_edge")
+    if edge is None or edge < VALUE_TIER_MODEREE:
+        return "⚪ Aucune value nette détectée ce soir sur ce match.\n"
 
     home_team = value["home_team"]
     away_team = value["away_team"]
@@ -657,9 +704,7 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
     team = home_team if side == "home" else away_team
     prob = model["p_home"] if side == "home" else 1 - model["p_home"]
     price = value["playable_home_price"] if side == "home" else value["playable_away_price"]
-
     fair_odds = compute_fair_odds(prob)
-    marker = "🟠" if units <= 0.5 else "🟢"
 
     lines = []
     if fair_odds is not None:
@@ -669,9 +714,17 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
                 f"📐 Cote juste (modèle) : @{fair_odds:.2f} -- value dès que la cote dépasse ce seuil "
                 f"(cote réelle @{price}, EV {ev_pct:+.1f}%)\n"
             )
+            if ev_pct < MIN_REAL_EV_PCT:
+                lines.append(
+                    f"🔵 <i>Value confirmée, mais écart modeste avec la cote réellement jouable "
+                    f"(EV au prix réel {ev_pct:+.1f}%, surtout sensible sur une cote courte) -- la mise "
+                    f"ci-dessous reste basée sur la confiance du modèle, pas sur ce prix. Peut valoir le "
+                    f"coup en combiné même si l'intérêt est plus limité en simple.</i>\n"
+                )
         else:
             lines.append(f"📐 Cote juste (modèle) : @{fair_odds:.2f} (cote réelle indisponible pour ce match)\n")
 
+    marker = "🟠" if units <= 0.5 else "🟢"
     eur = units * EUR_PER_UNIT
     lines.append(f"{marker} <b>Sélection : {team}</b> — {units}u ({eur:.2f}€)\n")
     lines.append(f"<i>{'; '.join(reasons)}</i>\n")
@@ -758,17 +811,29 @@ def evaluate_value(model: dict, odds_events: list[dict]) -> dict:
     return result
 
 
+MIN_REAL_EV_PCT = 2.0  # % minimum d'EV au prix RÉELLEMENT jouable -- pas juste vs Pinnacle
+
+
 def stake_units(value: dict, model: dict) -> tuple[float, list[str]]:
-    """Détermine la mise en UNITÉS (u), calibrée sur l'analyse du 5 août
-    (131 picks avec composants détaillés) plutôt que sur des bonus qui ne
-    discriminaient rien :
+    """Détermine la mise en UNITÉS (u), pilotée par compute_confidence_score
+    (somme pondérée de plusieurs composantes -- voir CONFIDENCE_WEIGHTS),
+    pas par le titulaire seul :
     - books_agree et line-up réel : quasi aucune différence de réussite
       observée (45-46% avec ou sans) -- retirés comme critères de mise.
-    - |pitcher_quality_adj| < 5 pts ("duel neutre") : 37% de réussite,
-      -28.97u sur 43 picks -- zone la moins fiable, mise plafonnée à 0.5u
-      même si l'edge global paraît intéressant (il vient d'ailleurs).
-    - |pitcher_quality_adj| >= 10 pts : la zone la plus rentable observée
-      -- c'est elle qui ouvre la porte au 2u, pas l'edge seul.
+    - score combiné < CONFIDENCE_SCORE_MIN ("signal neutre") : zone
+      historiquement la moins fiable (37% de réussite sur le titulaire
+      seul, -28.97u/43 picks) -- mise plafonnée à 0.5u même si l'edge
+      global paraît intéressant (il vient d'ailleurs).
+    - score combiné >= CONFIDENCE_SCORE_STRONG : la zone la plus rentable
+      observée -- c'est elle qui ouvre la porte au 2u, pas l'edge seul.
+
+    La mise reflète la confiance dans le MODÈLE (edge vs Pinnacle + signal
+    titulaire), pas la disponibilité d'un prix chez tel ou tel book -- ce
+    sont deux choses différentes. Si le prix réellement jouable est moins
+    bon que la cote juste, c'est signalé en information dans le message
+    (voir format_selection_block), mais ça ne réduit plus la mise -- sinon
+    ça fausserait l'analyse des paliers de confiance qu'on vient de calibrer.
+
     Renvoie les unités et les raisons, pour le débrief.
     """
     edge = value["best_edge"]
@@ -781,21 +846,32 @@ def stake_units(value: dict, model: dict) -> tuple[float, list[str]]:
         reasons.append("edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution")
         return 0.5, reasons
 
-    pitcher_signal = abs(model.get("pitcher_quality_adj", 0.0))
+    confidence = compute_confidence_score(model)
 
-    if pitcher_signal < PITCHER_SIGNAL_MIN:
+    if confidence < CONFIDENCE_SCORE_MIN:
         reasons.append(
-            "duel titulaires quasi neutre -- l'edge vient surtout d'ailleurs, "
-            "zone la moins fiable du modèle empiriquement (37% de réussite observé)"
+            "signal combiné (titulaire + reste du modèle) quasi neutre -- l'edge vient surtout d'ailleurs, "
+            "zone historiquement la moins fiable"
         )
         return 0.5, reasons
 
-    if pitcher_signal >= PITCHER_SIGNAL_STRONG and edge >= VALUE_TIER_MODEREE:
+    contributors = count_meaningful_contributors(model)
+
+    if confidence >= CONFIDENCE_SCORE_STRONG and edge >= VALUE_TIER_MODEREE and contributors >= MULTI_FACTOR_MIN_CONTRIBUTORS:
         units = 2.0
-        reasons.append("duel titulaires marqué -- la zone où le modèle a le mieux performé empiriquement")
+        reasons.append(
+            f"signal combiné marqué, confirmé par {contributors} facteurs indépendants -- "
+            f"la zone la plus rentable observée"
+        )
+    elif confidence >= CONFIDENCE_SCORE_STRONG:
+        units = 1.0
+        reasons.append(
+            "score fort mais porté par un seul facteur -- mise prudente en attendant confirmation "
+            "d'un second (pas de 2u sur un facteur isolé, même solide)"
+        )
     else:
         units = 1.0
-        reasons.append("edge confirmé par un vrai écart de titulaires, sans être extrême")
+        reasons.append("edge confirmé par un signal combiné réel, sans être extrême")
 
     if value.get("books_agree"):
         book_name = (value.get("playable_book") or "le book jouable").capitalize()
