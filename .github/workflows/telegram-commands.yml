@@ -2,7 +2,7 @@ name: Telegram Commands
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # toutes les 5 minutes -- le minimum autorisé par GitHub
+    - cron: '2-59/5 * * * *'   # décalé sur les minutes 2,7,12,17... plutôt que 0,5,10,15... -- moins de monde à ces horaires précis, un peu moins de retard de file d'attente GitHub
   workflow_dispatch:          # permet aussi un lancement manuel depuis l'onglet Actions
 
 permissions:
