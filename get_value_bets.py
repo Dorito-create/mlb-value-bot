@@ -162,12 +162,26 @@ def compute_confidence_score(model: dict) -> float:
     return sum(weight * abs(model.get(name, 0.0)) for name, weight in CONFIDENCE_WEIGHTS.items())
 
 
-def count_meaningful_contributors(model: dict) -> int:
-    """Nombre de composantes qui contribuent chacune de façon notable
-    (brut, avant pondération) -- sert à vérifier que le score fort n'est
-    pas porté par une seule d'entre elles.
+def count_meaningful_contributors(model: dict, side: str) -> int:
+    """Nombre de composantes qui contribuent chacune de façon notable ET
+    dans la MÊME DIRECTION que la sélection (side='home' ou 'away') --
+    pas juste une ampleur notable, peu importe le sens.
+
+    Bug corrigé le 9 août : deux 2u perdants (Braves le 7, Phillies le 8)
+    avaient un contributeur qui allait en fait CONTRE la sélection (ex:
+    pitcher_quality_adj favorisait l'adversaire), mais comptait quand même
+    comme "confirmation" parce que seule l'ampleur était vérifiée, pas le
+    sens. Toutes les composantes sont dans la convention "positif =
+    favorise l'équipe à domicile".
     """
-    return sum(1 for name in CONFIDENCE_WEIGHTS if abs(model.get(name, 0.0)) >= INDIVIDUAL_CONTRIBUTION_MIN)
+    count = 0
+    for name in CONFIDENCE_WEIGHTS:
+        val = model.get(name, 0.0)
+        if abs(val) < INDIVIDUAL_CONTRIBUTION_MIN:
+            continue
+        if (side == "home" and val > 0) or (side == "away" and val < 0):
+            count += 1
+    return count
 
 # Système d'unités pour le suivi : 1u = 1% d'une bankroll de suivi fictive
 # de 100 (départ), indépendant de ta grille euro réelle ci-dessous.
@@ -855,7 +869,7 @@ def stake_units(value: dict, model: dict) -> tuple[float, list[str]]:
         )
         return 0.5, reasons
 
-    contributors = count_meaningful_contributors(model)
+    contributors = count_meaningful_contributors(model, value["best_side"])
 
     if confidence >= CONFIDENCE_SCORE_STRONG and edge >= VALUE_TIER_MODEREE and contributors >= MULTI_FACTOR_MIN_CONTRIBUTORS:
         units = 2.0
