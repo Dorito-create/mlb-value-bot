@@ -59,13 +59,17 @@ def get_actual_results(date_str: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Bilan "favori" sur TOUS les matchs (pas seulement les picks avec mise)
+# Bilan des SÉLECTIONS réelles (picks avec mise) -- PAS du favori du
+# modèle (p_home >= 0.5). Ce concept a été retiré de get_value_bets.py le
+# 6 août au profit d'une sélection unique ; ce fichier n'avait jamais été
+# mis à jour en conséquence -- corrigé le 9 août.
 # ---------------------------------------------------------------------------
 
-def build_favori_summary(games: list[dict], results: dict) -> dict:
+def build_selection_summary(games: list[dict], results: dict) -> dict:
     total = 0
     hits = 0
     not_final = 0
+    no_selection = 0
     details = []
 
     for g in games:
@@ -73,23 +77,21 @@ def build_favori_summary(games: list[dict], results: dict) -> dict:
         if winner_side is None:
             not_final += 1
             continue
-        total += 1
 
-        favori_side = "home" if g["p_home"] >= 0.5 else "away"
-        correct = favori_side == winner_side
+        units = g.get("stake_units") or 0
+        if units <= 0 or not g.get("best_side"):
+            no_selection += 1
+            continue
+
+        total += 1
+        team = g["home_team"] if g["best_side"] == "home" else g["away_team"]
+        correct = g["best_side"] == winner_side
         hits += int(correct)
 
-        favori_team = g["home_team"] if favori_side == "home" else g["away_team"]
-        detail = f"{'✅' if correct else '❌'} {g['away_team']} @ {g['home_team']} — favori : {favori_team}"
-
-        if g.get("stake_units"):
-            value_team = g["home_team"] if g["best_side"] == "home" else g["away_team"]
-            value_correct = g["best_side"] == winner_side
-            detail += f" | value {'✅' if value_correct else '❌'} sur {value_team} ({g['stake_units']}u)"
-
+        detail = f"{'✅' if correct else '❌'} {g['away_team']} @ {g['home_team']} — sélection : {team} ({units}u)"
         details.append(detail)
 
-    return {"total": total, "hits": hits, "not_final": not_final, "details": details}
+    return {"total": total, "hits": hits, "not_final": not_final, "no_selection": no_selection, "details": details}
 
 
 # ---------------------------------------------------------------------------
@@ -164,25 +166,31 @@ def _pct(hits: int, total: int) -> str:
 
 
 def format_debrief_message(
-    date_str: str, favori_summary: dict, settled: list[dict], bankroll: dict, collection_errors: list[dict] = None
+    date_str: str, selection_summary: dict, settled: list[dict], bankroll: dict, collection_errors: list[dict] = None
 ) -> str:
     collection_errors = collection_errors or []
 
-    if favori_summary["total"] == 0:
-        extra = f" ({favori_summary['not_final']} match(s) pas encore terminé(s))" if favori_summary["not_final"] else ""
-        return f"📋 <b>Débrief {date_str}</b>\n\nAucun match terminé trouvé pour cette date{extra}.\n"
+    if selection_summary["total"] == 0:
+        extra = []
+        if selection_summary["not_final"]:
+            extra.append(f"{selection_summary['not_final']} match(s) pas encore terminé(s)")
+        if selection_summary["no_selection"]:
+            extra.append(f"{selection_summary['no_selection']} match(s) sans sélection ce soir-là")
+        extra_text = f" ({', '.join(extra)})" if extra else ""
+        return f"📋 <b>Débrief {date_str}</b>\n\nAucune sélection réglable trouvée pour cette date{extra_text}.\n"
 
     lines = [f"📋 <b>Débrief {date_str}</b>\n"]
-    lines.append(f"Favori (modèle) correct sur tous les matchs : {_pct(favori_summary['hits'], favori_summary['total'])}\n")
+    lines.append(f"Sélection correcte : {_pct(selection_summary['hits'], selection_summary['total'])}\n")
 
-    if favori_summary["not_final"] or collection_errors:
+    if selection_summary["not_final"] or selection_summary["no_selection"] or collection_errors:
         lines.append(
-            f"({favori_summary['not_final']} match(s) pas encore terminé(s) au moment du débrief, "
+            f"({selection_summary['not_final']} match(s) pas encore terminé(s), "
+            f"{selection_summary['no_selection']} sans sélection ce soir-là, "
             f"{len(collection_errors)} match(s) ignoré(s) la veille à la collecte)\n"
         )
 
-    lines.append("\n<b>Détail des matchs :</b>\n")
-    lines.extend(f"{d}\n" for d in favori_summary["details"])
+    lines.append("\n<b>Détail des sélections :</b>\n")
+    lines.extend(f"{d}\n" for d in selection_summary["details"])
 
     if collection_errors:
         lines.append("\n<b>Matchs ignorés hier soir (échec de collecte) :</b>\n")
@@ -235,20 +243,20 @@ def main() -> None:
     games = predictions.get("games", [])
     collection_errors = predictions.get("collection_errors", [])
 
-    favori_summary = build_favori_summary(games, results)
+    selection_summary = build_selection_summary(games, results)
 
     bankroll = load_bankroll()
     settled = settle_bets(date_str, games, results, bankroll)
     if settled:
         save_bankroll(bankroll)
 
-    message = format_debrief_message(date_str, favori_summary, settled, bankroll, collection_errors)
+    message = format_debrief_message(date_str, selection_summary, settled, bankroll, collection_errors)
     for chunk in chunk_message(message):
         send_message(chunk)
 
     print(
-        f"Débrief envoyé pour {date_str} : {favori_summary['total']} match(s) analysé(s), "
-        f"{favori_summary['not_final']} pas encore terminé(s), {len(settled)} pick(s) réglé(s)."
+        f"Débrief envoyé pour {date_str} : {selection_summary['total']} sélection(s) analysée(s), "
+        f"{selection_summary['not_final']} pas encore terminé(s), {len(settled)} pick(s) réglé(s)."
     )
 
 
