@@ -26,6 +26,32 @@ DATA_DIR = Path(__file__).parent / "data"
 BANKROLL_PATH = DATA_DIR / "bankroll.json"
 STARTING_BANKROLL = 100.0
 VALUE_TIER_MODEREE = 0.03  # même seuil que dans get_value_bets.py
+EUR_PER_UNIT = 5.0  # même grille que get_value_bets.py (0.5u=2.5€, 1u=5€, 2u=10€)
+
+
+def compute_fair_odds(prob: float | None) -> float | None:
+    """Même formule que dans get_value_bets.py -- dupliquée ici pour que
+    les deux scripts restent indépendants (pas d'import croisé)."""
+    if not prob or prob <= 0:
+        return None
+    return 1 / prob
+
+
+def _short_tier_label(reasons: list[str]) -> str:
+    """Étiquette courte extraite des raisons de mise -- même logique que
+    get_value_bets.py, dupliquée pour la même raison d'indépendance."""
+    if not reasons:
+        return ""
+    text = reasons[0]
+    if "suspect" in text:
+        return "suspect"
+    if "neutre" in text:
+        return "signal neutre"
+    if "seul facteur" in text:
+        return "1 seul facteur"
+    if "facteurs indépendants" in text:
+        return "confirmé"
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -59,18 +85,18 @@ def get_actual_results(date_str: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Bilan des SÉLECTIONS réelles (picks avec mise) -- PAS du favori du
-# modèle (p_home >= 0.5). Ce concept a été retiré de get_value_bets.py le
-# 6 août au profit d'une sélection unique ; ce fichier n'avait jamais été
-# mis à jour en conséquence -- corrigé le 9 août.
+# Bilan complet -- TOUS les matchs (pas seulement ceux avec mise), groupés
+# par palier de confiance, avec le résultat réel de chacun. Miroir du
+# récap de fin de soirée dans get_value_bets.py (9 août) : sert à voir si
+# le seuil de 3 pts fait rater des victoires évidentes, pas seulement à
+# auditer les mises déjà prises.
 # ---------------------------------------------------------------------------
 
-def build_selection_summary(games: list[dict], results: dict) -> dict:
-    total = 0
-    hits = 0
+def build_full_debrief(games: list[dict], results: dict, bankroll_history_today: list[dict]) -> dict:
+    pnl_by_pk = {h["game_pk"]: h for h in bankroll_history_today}
+    tiers: dict[float, list[dict]] = {2.0: [], 1.0: [], 0.5: [], 0.0: []}
     not_final = 0
-    no_selection = 0
-    details = []
+    no_pinnacle = 0
 
     for g in games:
         winner_side = results.get(g.get("game_pk"))
@@ -78,20 +104,37 @@ def build_selection_summary(games: list[dict], results: dict) -> dict:
             not_final += 1
             continue
 
-        units = g.get("stake_units") or 0
-        if units <= 0 or not g.get("best_side"):
-            no_selection += 1
+        side = g.get("best_side")
+        if side is None:
+            no_pinnacle += 1
             continue
 
-        total += 1
-        team = g["home_team"] if g["best_side"] == "home" else g["away_team"]
-        correct = g["best_side"] == winner_side
-        hits += int(correct)
+        units = g.get("stake_units") or 0
+        team = g["home_team"] if side == "home" else g["away_team"]
+        won = side == winner_side
 
-        detail = f"{'✅' if correct else '❌'} {g['away_team']} @ {g['home_team']} — sélection : {team} ({units}u)"
-        details.append(detail)
+        settled_entry = pnl_by_pk.get(g.get("game_pk"))
+        if settled_entry is not None:
+            price = settled_entry["price"]
+            pnl = settled_entry["pnl"]
+        else:
+            prob = g["p_home"] if side == "home" else 1 - g["p_home"]
+            price = compute_fair_odds(prob)
+            pnl = None
 
-    return {"total": total, "hits": hits, "not_final": not_final, "no_selection": no_selection, "details": details}
+        entry = {
+            "team": team,
+            "edge": g.get("best_edge") or 0.0,
+            "units": units,
+            "won": won,
+            "price": price,
+            "pnl": pnl,
+            "tier_label": _short_tier_label(g.get("stake_reasons", [])),
+            "hypothetical": units <= 0,  # pas de vraie mise -- juste informatif
+        }
+        tiers.setdefault(units, []).append(entry)
+
+    return {"tiers": tiers, "not_final": not_final, "no_pinnacle": no_pinnacle}
 
 
 # ---------------------------------------------------------------------------
@@ -161,51 +204,58 @@ def settle_bets(date_str: str, games: list[dict], results: dict, bankroll: dict)
 # Message final
 # ---------------------------------------------------------------------------
 
-def _pct(hits: int, total: int) -> str:
-    return f"{hits}/{total} ({hits/total*100:.0f}%)" if total else "0/0"
-
-
 def format_debrief_message(
-    date_str: str, selection_summary: dict, settled: list[dict], bankroll: dict, collection_errors: list[dict] = None
+    date_str: str, debrief: dict, bankroll: dict, bankroll_history_today: list[dict], collection_errors: list[dict] = None
 ) -> str:
     collection_errors = collection_errors or []
+    tiers = debrief["tiers"]
+    total_known = sum(len(v) for v in tiers.values())
 
-    if selection_summary["total"] == 0:
+    if total_known == 0:
         extra = []
-        if selection_summary["not_final"]:
-            extra.append(f"{selection_summary['not_final']} match(s) pas encore terminé(s)")
-        if selection_summary["no_selection"]:
-            extra.append(f"{selection_summary['no_selection']} match(s) sans sélection ce soir-là")
+        if debrief["not_final"]:
+            extra.append(f"{debrief['not_final']} match(s) pas encore terminé(s)")
+        if debrief["no_pinnacle"]:
+            extra.append(f"{debrief['no_pinnacle']} match(s) sans cotes Pinnacle")
         extra_text = f" ({', '.join(extra)})" if extra else ""
-        return f"📋 <b>Débrief {date_str}</b>\n\nAucune sélection réglable trouvée pour cette date{extra_text}.\n"
+        return f"📋 <b>Débrief {date_str}</b>\n\nAucun match analysable trouvé pour cette date{extra_text}.\n"
 
     lines = [f"📋 <b>Débrief {date_str}</b>\n"]
-    lines.append(f"Sélection correcte : {_pct(selection_summary['hits'], selection_summary['total'])}\n")
 
-    if selection_summary["not_final"] or selection_summary["no_selection"] or collection_errors:
+    def render_tier(label: str, marker: str, group: list[dict]) -> None:
+        if not group:
+            return
+        wins = sum(1 for e in group if e["won"])
+        lines.append(f"\n{marker} <b>{label}</b> — {wins}/{len(group)}\n")
+        for e in sorted(group, key=lambda x: -x["edge"]):
+            icon = "✅" if e["won"] else "❌"
+            tag = f" ({e['tier_label']})" if e["tier_label"] else ""
+            if e["hypothetical"]:
+                detail = f" (aurait rapporté @{e['price']:.2f})" if e["won"] and e["price"] else ""
+                lines.append(f"{icon} {e['team']}{tag}{detail}\n")
+            else:
+                pnl_text = f" → {e['pnl']:+.2f}u" if e["pnl"] is not None else " (prix inconnu -- non chiffré)"
+                lines.append(f"{icon} {e['team']}{tag} @{e['price'] or '?'}{pnl_text}\n")
+
+    render_tier("CONFIANCE FORTE (2u)", "🟢", tiers[2.0])
+    render_tier("CONFIANCE MODÉRÉE (1u)", "🔵", tiers[1.0])
+    render_tier("MÉFIANCE (0.5u)", "🟠", tiers[0.5])
+    render_tier("AUCUNE SÉLECTION", "⚪", tiers[0.0])
+
+    if debrief["not_final"] or debrief["no_pinnacle"] or collection_errors:
         lines.append(
-            f"({selection_summary['not_final']} match(s) pas encore terminé(s), "
-            f"{selection_summary['no_selection']} sans sélection ce soir-là, "
-            f"{len(collection_errors)} match(s) ignoré(s) la veille à la collecte)\n"
+            f"\n({debrief['not_final']} pas encore terminé(s), {debrief['no_pinnacle']} sans cotes Pinnacle, "
+            f"{len(collection_errors)} ignoré(s) la veille à la collecte)\n"
         )
-
-    lines.append("\n<b>Détail des sélections :</b>\n")
-    lines.extend(f"{d}\n" for d in selection_summary["details"])
 
     if collection_errors:
         lines.append("\n<b>Matchs ignorés hier soir (échec de collecte) :</b>\n")
         for err in collection_errors:
             lines.append(f"⚠️ {err['matchup']} — {err['reason']}\n")
 
-    if settled:
-        wins = sum(1 for s in settled if s["won"])
-        total_pnl = sum(s["pnl"] for s in settled if s["pnl"] is not None)
-        lines.append(f"\n<b>Picks avec mise réglés ce soir</b> : {wins}/{len(settled)}\n")
-        for s in settled:
-            icon = "✅" if s["won"] else "❌"
-            pnl_text = f"{s['pnl']:+.2f}u" if s["pnl"] is not None else "prix inconnu -- non chiffré"
-            lines.append(f"{icon} {s['team']} — {s['units']}u @ {s['price'] or '?'} → {pnl_text}\n")
-        lines.append(f"\nP&L de la soirée : <b>{total_pnl:+.2f}u</b>\n")
+    if bankroll_history_today:
+        total_pnl = sum(h["pnl"] for h in bankroll_history_today if h["pnl"] is not None)
+        lines.append(f"\nP&L de la soirée (mises réelles) : <b>{total_pnl:+.2f}u</b> ({total_pnl*EUR_PER_UNIT:+.2f}€)\n")
         lines.append(f"Bankroll de suivi : <b>{bankroll['balance']:.2f}</b> (départ 100)\n")
     else:
         lines.append(f"\nAucun pick avec mise ce soir-là. Bankroll de suivi inchangée : <b>{bankroll['balance']:.2f}</b>\n")
@@ -243,20 +293,25 @@ def main() -> None:
     games = predictions.get("games", [])
     collection_errors = predictions.get("collection_errors", [])
 
-    selection_summary = build_selection_summary(games, results)
-
     bankroll = load_bankroll()
     settled = settle_bets(date_str, games, results, bankroll)
     if settled:
         save_bankroll(bankroll)
 
-    message = format_debrief_message(date_str, selection_summary, settled, bankroll, collection_errors)
+    # L'historique COMPLET de cette date (pas juste ce qui vient d'être réglé
+    # à cet instant) -- important si le débrief est relancé plusieurs fois
+    # pour la même date (ex: après un rattrapage de données).
+    bankroll_history_today = [h for h in bankroll["history"] if h["date"] == date_str]
+    selection_summary = build_full_debrief(games, results, bankroll_history_today)
+
+    message = format_debrief_message(date_str, selection_summary, bankroll, bankroll_history_today, collection_errors)
     for chunk in chunk_message(message):
         send_message(chunk)
 
+    total_known = sum(len(v) for v in selection_summary["tiers"].values())
     print(
-        f"Débrief envoyé pour {date_str} : {selection_summary['total']} sélection(s) analysée(s), "
-        f"{selection_summary['not_final']} pas encore terminé(s), {len(settled)} pick(s) réglé(s)."
+        f"Débrief envoyé pour {date_str} : {total_known} match(s) analysé(s), "
+        f"{selection_summary['not_final']} pas encore terminé(s), {len(settled)} pick(s) réglé(s) ce lancement."
     )
 
 
