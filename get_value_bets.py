@@ -186,7 +186,6 @@ def count_meaningful_contributors(model: dict, side: str) -> int:
 # Système d'unités pour le suivi : 1u = 1% d'une bankroll de suivi fictive
 # de 100 (départ), indépendant de ta grille euro réelle ci-dessous.
 MAX_UNITS_PER_PICK = 2.0
-MAX_SUMMARY_PICKS = 5  # le résumé du soir se limite aux picks les plus fiables -- les messages par match, eux, gardent tout
 
 EUR_PER_UNIT = 5.0  # 0.5u = 2.5€, 1u = 5€, 2u = 10€ -- ta grille personnelle de mise réelle
 
@@ -1160,33 +1159,89 @@ def format_value_block(model: dict, value: dict) -> str:
     return "\n".join(lines)
 
 
-def format_summary(picks: list[dict]) -> str:
-    """Résumé de fin de soirée -- les MAX_SUMMARY_PICKS values les plus
-    fiables (les messages par match, eux, gardent l'analyse de tous les
-    matchs), dimensionnées en unités et en euros (ta grille personnelle).
+def _short_tier_label(reasons: list[str]) -> str:
+    """Étiquette courte extraite des raisons de mise, pour le récap --
+    évite de répéter la phrase complète sur chaque ligne.
     """
-    if not picks:
-        return (
-            "📋 <b>Résumé du soir</b>\n\n"
-            "Aucune value jugée assez fiable ce soir. C'est un résultat normal -- "
-            "pas besoin de forcer un pick chaque soir.\n"
-        )
+    if not reasons:
+        return ""
+    text = reasons[0]
+    if "suspect" in text:
+        return "suspect"
+    if "neutre" in text:
+        return "signal neutre"
+    if "seul facteur" in text:
+        return "1 seul facteur"
+    if "facteurs indépendants" in text:
+        return "confirmé"
+    return ""
 
-    lines = [f"📋 <b>Résumé du soir -- top {len(picks)} pick(s) sur la fiabilité</b>\n"]
-    total_units = 0.0
-    for i, pick in enumerate(picks, start=1):
-        total_units += pick["units"]
-        marker = "🟠" if pick["units"] <= 0.5 else "🟢"
-        lines.append(
-            f"{marker} {i}. <b>{pick['team']}</b> ({pick['matchup']}) — edge {pick['edge']*100:+.1f} pts — "
-            f"<b>{pick['units']}u</b> ({units_to_eur_display(pick['units'])})\n"
-            f"   {'; '.join(pick['reasons'])}\n"
-        )
-    lines.append(f"\nTotal engagé ce soir : <b>{total_units}u</b> (1u = 1% de la bankroll de suivi, départ 100)\n")
-    lines.append(
-        "⚠️ Dimensionné par fiabilité perçue du signal, pas par edge brut. "
-        "Le modèle reste non validé -- à toi de juger.\n"
+
+def build_recap_entry(model: dict, value: dict, units: float, reasons: list[str]) -> dict | None:
+    """Construit une entrée de récap pour UN match -- équipe, edge, cote
+    juste (modèle) et cote Pinnacle reconstruite (à partir de p_home et
+    best_edge, puisque la proba Pinnacle brute n'est pas sauvegardée
+    telle quelle). None si Pinnacle n'a pas de cotes pour ce match.
+    """
+    side = value.get("best_side")
+    edge = value.get("best_edge")
+    if side is None or edge is None:
+        return None
+
+    team = value["home_team"] if side == "home" else value["away_team"]
+    model_prob = model["p_home"] if side == "home" else 1 - model["p_home"]
+    pinnacle_prob = model_prob - edge
+
+    return {
+        "team": team,
+        "edge": edge,
+        "units": units,
+        "fair_odds": compute_fair_odds(model_prob),
+        "pinnacle_odds": compute_fair_odds(pinnacle_prob),
+        "tier_label": _short_tier_label(reasons),
+    }
+
+
+def format_full_recap(entries: list[dict]) -> str:
+    """Récap complet de fin de soirée -- TOUS les matchs (pas juste un
+    top N), groupés par palier de confiance (2u/1u/0.5u/aucune sélection).
+    Remplace l'ancien "top 5" du 6 août.
+    """
+    if not entries:
+        return "📋 <b>Récap complet</b>\n\nAucun match avec cotes Pinnacle disponibles ce soir.\n"
+
+    tiers: dict[float, list[dict]] = {2.0: [], 1.0: [], 0.5: [], 0.0: []}
+    for e in entries:
+        tiers.setdefault(e["units"], []).append(e)
+
+    counts = (
+        f"{len(tiers[2.0])} en 2u, {len(tiers[1.0])} en 1u, "
+        f"{len(tiers[0.5])} en 0.5u, {len(tiers[0.0])} sans sélection"
     )
+    lines = [f"📋 <b>Récap complet</b>\n", f"<i>{len(entries)} match(s) — {counts}</i>\n"]
+
+    def render_tier(label: str, marker: str, group: list[dict], show_edge_zero_note: bool = False) -> None:
+        if not group:
+            return
+        lines.append(f"\n{marker} <b>{label}</b>\n")
+        for e in sorted(group, key=lambda x: -x["edge"]):
+            tag = f" ({e['tier_label']})" if e["tier_label"] else ""
+            lines.append(
+                f"{marker} {e['team']}{tag} — {e['edge']*100:.1f} pts · "
+                f"modèle @{e['fair_odds']:.2f} vs Pinnacle @{e['pinnacle_odds']:.2f}\n"
+            )
+
+    render_tier("CONFIANCE FORTE (2u)", "🟢", tiers[2.0])
+    render_tier("CONFIANCE MODÉRÉE (1u)", "🔵", tiers[1.0])
+    render_tier("MÉFIANCE (0.5u)", "🟠", tiers[0.5])
+    render_tier("AUCUNE SÉLECTION (edge < 3 pts)", "⚪", tiers[0.0])
+
+    total_units = sum(e["units"] for e in entries)
+    lines.append(
+        f"\nTotal engagé ce soir : <b>{total_units}u</b> ({units_to_eur_display(total_units)}) -- "
+        f"1u = 1% de la bankroll de suivi, départ 100\n"
+    )
+    lines.append("⚠️ Dimensionné par fiabilité perçue du signal, pas par edge brut. Le modèle reste non validé -- à toi de juger.\n")
     return "\n".join(lines)
 
 
@@ -1230,7 +1285,7 @@ def main() -> None:
     matchs_envoyes = 0
     matchs_echoues = 0
     matchs_deja_commences = 0
-    candidates = []
+    recap_entries = []
     log_entries = []
     collection_errors = []
 
@@ -1294,6 +1349,11 @@ def main() -> None:
             }
 
             units, reasons = stake_units(value, model)
+
+            recap_entry = build_recap_entry(model, value, units, reasons)
+            if recap_entry is not None:
+                recap_entries.append(recap_entry)
+
             if units > 0:
                 side = value["best_side"]
                 # Prix réellement jouable en priorité (Betclic, puis Unibet en
@@ -1312,17 +1372,6 @@ def main() -> None:
                 log_entry["stake_price"] = price
                 log_entry["stake_reasons"] = reasons
 
-                team = value["home_team"] if side == "home" else value["away_team"]
-                candidates.append(
-                    {
-                        "team": team,
-                        "matchup": f"{value['away_team']} @ {value['home_team']}",
-                        "edge": value["best_edge"],
-                        "units": units,
-                        "reasons": reasons,
-                    }
-                )
-
             log_entries.append(log_entry)
         except Exception as exc:
             print(f"  ⚠️ Match ignoré ({away} @ {home}) après erreur : {exc}")
@@ -1330,10 +1379,7 @@ def main() -> None:
             matchs_echoues += 1
         time.sleep(0.3)
 
-    candidates.sort(key=lambda c: c["units"], reverse=True)
-    picks = candidates[:MAX_SUMMARY_PICKS]  # le résumé se limite aux plus fiables ; les messages par match gardent tout
-
-    summary_text = format_summary(picks)
+    summary_text = format_full_recap(recap_entries)
     for chunk in chunk_message(summary_text):
         send_message(chunk)
 
@@ -1341,7 +1387,7 @@ def main() -> None:
 
     print(
         f"{matchs_envoyes} verdict(s) envoyé(s) sur Telegram, {matchs_echoues} échoué(s), "
-        f"{matchs_deja_commences} déjà commencé(s) ignoré(s), {len(picks)} pick(s) dimensionné(s)."
+        f"{matchs_deja_commences} déjà commencé(s) ignoré(s), {len(recap_entries)} match(s) dans le récap."
     )
 
 
