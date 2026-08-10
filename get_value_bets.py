@@ -1229,13 +1229,30 @@ def main() -> None:
 
     matchs_envoyes = 0
     matchs_echoues = 0
+    matchs_deja_commences = 0
     candidates = []
     log_entries = []
     collection_errors = []
 
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+
     for game in games:
         home = game["teams"]["home"]["team"]["name"]
         away = game["teams"]["away"]["team"]["name"]
+
+        # Un match déjà commencé n'a plus de cotes utilisables (le marché
+        # ferme au coup d'envoi) -- le retraiter donnerait "aucune
+        # sélection" et ÉCRASERAIT, dans le log fusionné par match, une
+        # bonne sélection déjà sauvegardée par une exécution plus tôt dans
+        # la journée. On le laisse simplement tel qu'il était.
+        try:
+            game_start = datetime.datetime.fromisoformat(game.get("gameDate", "").replace("Z", "+00:00"))
+            if game_start <= now_utc:
+                matchs_deja_commences += 1
+                continue
+        except Exception:
+            pass  # date illisible -- on traite le match normalement plutôt que de le sauter à tort
+
         try:
             model = compute_model_probability(game, split_records)
             value = evaluate_value(model, odds_events)
@@ -1322,7 +1339,10 @@ def main() -> None:
 
     save_predictions_log(date_str, log_entries, collection_errors)
 
-    print(f"{matchs_envoyes} verdict(s) envoyé(s) sur Telegram, {matchs_echoues} ignoré(s), {len(picks)} pick(s) dimensionné(s).")
+    print(
+        f"{matchs_envoyes} verdict(s) envoyé(s) sur Telegram, {matchs_echoues} échoué(s), "
+        f"{matchs_deja_commences} déjà commencé(s) ignoré(s), {len(picks)} pick(s) dimensionné(s)."
+    )
 
 
 if __name__ == "__main__":
