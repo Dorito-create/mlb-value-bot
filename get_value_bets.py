@@ -1404,11 +1404,14 @@ def main() -> None:
             matchs_echoues += 1
         time.sleep(0.3)
 
-    summary_text = format_full_recap(recap_entries)
-    for chunk in chunk_message(summary_text):
-        send_message(chunk)
-
     save_predictions_log(date_str, log_entries, collection_errors)
+
+    try:
+        summary_text = format_full_recap(recap_entries)
+        for chunk in chunk_message(summary_text):
+            send_message(chunk)
+    except Exception as exc:
+        print(f"⚠️ Envoi du récap échoué (les données du soir sont déjà sauvegardées, rien n'est perdu) : {exc}")
 
     print(
         f"{matchs_envoyes} verdict(s) envoyé(s) sur Telegram, {matchs_echoues} échoué(s), "
