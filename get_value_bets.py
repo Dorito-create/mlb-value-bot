@@ -1246,7 +1246,32 @@ def format_full_recap(entries: list[dict]) -> str:
 
 
 def chunk_message(text: str, limit: int = 3800) -> list[str]:
-    return [text[i : i + limit] for i in range(0, len(text), limit)]
+    """Découpe un message trop long en plusieurs morceaux -- UNIQUEMENT
+    entre deux lignes complètes, jamais au milieu d'une ligne. Bug corrigé
+    le 11 août : l'ancien découpage au nombre de caractères pouvait
+    trancher en plein milieu d'une balise <b>/<i>, laissant un morceau
+    avec une balise ouverte mais jamais fermée -- Telegram refuse alors
+    tout le message ("Unsupported start tag"). Comme chaque balise
+    s'ouvre et se ferme toujours dans la même ligne dans ce bot, découper
+    seulement entre les lignes élimine le problème.
+    """
+    if len(text) <= limit:
+        return [text]
+
+    chunks = []
+    current: list[str] = []
+    current_len = 0
+    for line in text.split("\n"):
+        line_with_newline = line + "\n"
+        if current_len + len(line_with_newline) > limit and current:
+            chunks.append("".join(current))
+            current = []
+            current_len = 0
+        current.append(line_with_newline)
+        current_len += len(line_with_newline)
+    if current:
+        chunks.append("".join(current))
+    return chunks
 
 
 def save_predictions_log(date_str: str, log_entries: list[dict], collection_errors: list[dict]) -> None:
