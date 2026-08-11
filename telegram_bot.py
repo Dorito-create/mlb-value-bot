@@ -10,6 +10,7 @@ Test rapide une fois les variables configurées :
 """
 
 import os
+import re
 import time
 import requests
 from dotenv import load_dotenv
@@ -34,6 +35,15 @@ THROTTLE_DELAY_SECONDS = 0.6   # petite pause après chaque envoi réussi, pour 
 _REQUEST_HEADERS = {"Connection": "close"}
 
 
+def _strip_html_tags(text: str) -> str:
+    """Retire les balises HTML (b, i, etc.) d'un texte -- utilisé en
+    dernier recours si Telegram refuse de parser le HTML du message
+    (voir send_message). Moins joli, mais le contenu arrive quand même
+    plutôt que d'être perdu.
+    """
+    return re.sub(r"</?[a-zA-Z][^>]*>", "", text)
+
+
 def send_message(text: str) -> None:
     """Envoie un message texte sur le channel/groupe Telegram configuré.
 
@@ -43,6 +53,12 @@ def send_message(text: str) -> None:
     réseau instable, ou Telegram qui demande de ralentir). On retente
     automatiquement avant d'abandonner, plutôt que de faire planter tout
     le script.
+
+    Filet de sécurité ajouté le 11 août : si Telegram refuse le HTML
+    ("can't parse entities" -- une balise mal formée quelque part dans un
+    texte généré dynamiquement, cause exacte pas toujours identifiable),
+    on retente une fois en texte brut plutôt que de perdre le message et
+    de faire planter tout le script en cours de route.
     """
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
         raise RuntimeError(
@@ -57,6 +73,7 @@ def send_message(text: str) -> None:
         "text": text,
         "parse_mode": "HTML",
     }
+    plain_text_fallback_tried = False
 
     last_error = None
     for attempt in range(1, MAX_RETRIES + 1):
@@ -81,6 +98,17 @@ def send_message(text: str) -> None:
             retry_after = response.json().get("parameters", {}).get("retry_after", BASE_RETRY_DELAY_SECONDS)
             print(f"  (Telegram demande d'attendre {retry_after}s avant de renvoyer...)")
             time.sleep(retry_after)
+            continue
+
+        if (
+            response.status_code == 400
+            and not plain_text_fallback_tried
+            and payload.get("parse_mode")
+            and "can't parse entities" in response.text
+        ):
+            print(f"  ⚠️ Erreur de formatage HTML ({response.text}) -- nouvel essai en texte brut...")
+            payload = {"chat_id": TELEGRAM_CHAT_ID, "text": _strip_html_tags(text)}
+            plain_text_fallback_tried = True
             continue
 
         # Autre erreur (token invalide, chat_id incorrect, bot pas admin...) :
