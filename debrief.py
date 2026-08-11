@@ -266,7 +266,26 @@ def format_debrief_message(
 
 
 def chunk_message(text: str, limit: int = 3800) -> list[str]:
-    return [text[i : i + limit] for i in range(0, len(text), limit)]
+    """Découpe un message trop long en plusieurs morceaux -- UNIQUEMENT
+    entre deux lignes complètes, jamais au milieu d'une ligne (voir
+    get_value_bets.py pour le détail du bug corrigé le 11 août)."""
+    if len(text) <= limit:
+        return [text]
+
+    chunks = []
+    current: list[str] = []
+    current_len = 0
+    for line in text.split("\n"):
+        line_with_newline = line + "\n"
+        if current_len + len(line_with_newline) > limit and current:
+            chunks.append("".join(current))
+            current = []
+            current_len = 0
+        current.append(line_with_newline)
+        current_len += len(line_with_newline)
+    if current:
+        chunks.append("".join(current))
+    return chunks
 
 
 def parse_date_arg(raw: str) -> str:
