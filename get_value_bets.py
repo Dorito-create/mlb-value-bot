@@ -183,6 +183,48 @@ def count_meaningful_contributors(model: dict, side: str) -> int:
             count += 1
     return count
 
+
+# ---------------------------------------------------------------------------
+# Score de confiance affiché en étoiles (11 août) -- une échelle à part,
+# jamais utilisée pour décider la mise. compute_confidence_score et
+# count_meaningful_contributors ci-dessus restent INCHANGÉS et continuent
+# de piloter stake_units exactement comme avant (calibré le 6 août, ne
+# pas casser). Cette nouvelle échelle répond à une question différente :
+# "est-ce que je fais confiance à ma propre lecture de ce match", jamais
+# "combien miser" ou "l'edge vs Pinnacle est-il grand". Calculée pour
+# TOUS les matchs, y compris "aucune sélection" et "méfiance" -- jamais
+# dérivée de l'edge, du palier de mise, ou de l'étiquette "suspect".
+# ---------------------------------------------------------------------------
+
+CONFIDENCE_STAR_THRESHOLDS = [0.03, 0.05, 0.08, 0.11]  # bornes entre 1/2/3/4/5 étoiles
+
+
+def compute_confidence_stars_score(model: dict) -> float:
+    """Comme compute_confidence_score, mais PÉNALISE la concentration :
+    un seul facteur qui porte l'essentiel du score compte moins qu'une
+    somme équivalente répartie sur plusieurs facteurs qui s'accordent,
+    même à somme brute égale. Continu, pas un seuil binaire "1 facteur =
+    ceci" -- la pénalité dépend de la part réelle du plus gros
+    contributeur, pas d'un simple comptage.
+    """
+    contributions = {name: weight * abs(model.get(name, 0.0)) for name, weight in CONFIDENCE_WEIGHTS.items()}
+    raw_score = sum(contributions.values())
+    if raw_score <= 0:
+        return 0.0
+
+    biggest_share = max(contributions.values()) / raw_score
+    return raw_score * (0.5 + 0.5 * (1 - biggest_share))
+
+
+def confidence_stars(score: float) -> str:
+    """Convertit le score pénalisé en 1 à 5 étoiles affichables."""
+    n = 5
+    for i, threshold in enumerate(CONFIDENCE_STAR_THRESHOLDS):
+        if score < threshold:
+            n = i + 1
+            break
+    return "⭐" * n
+
 # Système d'unités pour le suivi : 1u = 1% d'une bankroll de suivi fictive
 # de 100 (départ), indépendant de ta grille euro réelle ci-dessous.
 MAX_UNITS_PER_PICK = 2.0
@@ -708,8 +750,10 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
     négatif, pas une question d'opinion.
     """
     edge = value.get("best_edge")
+    stars = confidence_stars(compute_confidence_stars_score(model))
+
     if edge is None or edge < VALUE_TIER_MODEREE:
-        return "⚪ Aucune value nette détectée ce soir sur ce match.\n"
+        return f"⚪ Aucune value nette détectée ce soir sur ce match. Confiance : {stars}\n"
 
     home_team = value["home_team"]
     away_team = value["away_team"]
@@ -741,6 +785,7 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
     eur = units * EUR_PER_UNIT
     lines.append(f"{marker} <b>Sélection : {team}</b> — {units}u ({eur:.2f}€)\n")
     lines.append(f"<i>{'; '.join(reasons)}</i>\n")
+    lines.append(f"Confiance (indépendante de l'edge) : {stars}\n")
 
     return "".join(lines)
 
@@ -1199,6 +1244,7 @@ def build_recap_entry(model: dict, value: dict, units: float, reasons: list[str]
         "fair_odds": compute_fair_odds(model_prob),
         "pinnacle_odds": compute_fair_odds(pinnacle_prob),
         "tier_label": _short_tier_label(reasons),
+        "stars": confidence_stars(compute_confidence_stars_score(model)),
     }
 
 
@@ -1228,7 +1274,7 @@ def format_full_recap(entries: list[dict]) -> str:
             tag = f" ({e['tier_label']})" if e["tier_label"] else ""
             lines.append(
                 f"{marker} {e['team']}{tag} — {e['edge']*100:.1f} pts · "
-                f"modèle @{e['fair_odds']:.2f} vs Pinnacle @{e['pinnacle_odds']:.2f}\n"
+                f"modèle @{e['fair_odds']:.2f} vs Pinnacle @{e['pinnacle_odds']:.2f} · {e['stars']}\n"
             )
 
     render_tier("CONFIANCE FORTE (2u)", "🟢", tiers[2.0])
