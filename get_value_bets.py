@@ -45,6 +45,7 @@ import os
 import sys
 import time
 import json
+import math
 import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -619,6 +620,278 @@ def h2h_edge(h2h: dict) -> float:
 
 
 # ---------------------------------------------------------------------------
+# 5bis. Marché Total (over/under) -- ajouté le 18 août, ENTIÈREMENT séparé
+# du moneyline. Ne contribue JAMAIS aux étoiles, au choix du vainqueur, ni
+# à la mise moneyline -- une section à part dans le message, avec sa
+# propre mise indépendante et volontairement simple (1u/0.5u/aucune),
+# pour d'abord voir si le modèle fonctionne avant de le sophistiquer.
+#
+# Principe : runs attendus par équipe = (sa moyenne de runs marqués) ×
+# (ERA du titulaire adverse ÷ ERA moyenne de ligue), ajusté par le park
+# factor et la température (le vent est pour l'instant volontairement
+# ignoré -- sans l'orientation de chaque stade, on ne sait pas s'il
+# souffle vers l'intérieur ou l'extérieur, une donnée non trouvée de
+# façon fiable au moment de l'écriture -- voir le README).
+# ---------------------------------------------------------------------------
+
+LEAGUE_AVG_ERA_FOR_TOTALS = 4.20  # même échelle que LEAGUE_AVG_FIP
+LEAGUE_AVG_TOTAL_RUNS = 9.0       # ~2x une moyenne de runs par équipe par match
+
+PARK_FACTOR_TOTAL_MULTIPLIER = {-2: 0.90, -1: 0.95, 0: 1.00, 1: 1.05, 2: 1.10}
+
+LEAGUE_AVG_TEMP_C = 20.0
+WEATHER_TEMP_SENSITIVITY = 0.002  # effet volontairement modeste -- pas de direction de vent pour l'instant
+
+H2H_RUNS_MIN_GAMES = 2
+H2H_RUNS_MAX_WEIGHT_GAMES = 8
+H2H_RUNS_SENSITIVITY = 0.5
+SAME_STARTERS_RUNS_SENSITIVITY = 0.3  # poids plus faible -- échantillon presque toujours minuscule (0-2 matchs)
+
+TOTAL_RUNS_STD_DEV = 3.5  # écart-type approximatif du total de runs par match MLB (approximation Normale)
+
+TOTALS_VALUE_TIER_MODEREE = 0.03  # même seuil que le moneyline, mais appliqué à une proba over/under
+TOTALS_VALUE_TIER_SUSPECT = 0.15
+
+
+def get_h2h_runs_and_same_starters(
+    team_a_id: int, team_b_id: int, before_date_str: str, home_pitcher_id, away_pitcher_id
+) -> dict:
+    """Étend le principe du H2H existant, mais pour le TOTAL de runs (pas
+    qui gagne) : moyenne de runs marqués par les deux équipes cumulées sur
+    leurs confrontations cette saison, et à part, la même moyenne
+    restreinte aux matchs où CES DEUX titulaires précis étaient déjà
+    face à face (échantillon presque toujours minuscule, poids réduit).
+    """
+    params = {
+        "sportId": 1,
+        "teamId": team_a_id,
+        "opponentId": team_b_id,
+        "startDate": SEASON_START,
+        "endDate": before_date_str,
+        "gameType": "R",
+        "hydrate": "linescore,probablePitcher",
+    }
+    try:
+        data = get_json_with_retries(f"{MLB_API_BASE}/schedule", params)
+    except Exception:
+        return {"games_played": 0, "avg_total": None, "same_starters_games": 0, "same_starters_avg_total": None}
+
+    all_totals = []
+    same_starters_totals = []
+    pitchers_today = {home_pitcher_id, away_pitcher_id}
+
+    for day in data.get("dates", []):
+        for game in day.get("games", []):
+            linescore_teams = game.get("linescore", {}).get("teams", {})
+            home_runs = linescore_teams.get("home", {}).get("runs")
+            away_runs = linescore_teams.get("away", {}).get("runs")
+            if home_runs is None or away_runs is None:
+                continue
+            total = home_runs + away_runs
+            all_totals.append(total)
+
+            game_home_pitcher = game["teams"]["home"].get("probablePitcher", {}).get("id")
+            game_away_pitcher = game["teams"]["away"].get("probablePitcher", {}).get("id")
+            if None not in pitchers_today and {game_home_pitcher, game_away_pitcher} == pitchers_today:
+                same_starters_totals.append(total)
+
+    return {
+        "games_played": len(all_totals),
+        "avg_total": (sum(all_totals) / len(all_totals)) if all_totals else None,
+        "same_starters_games": len(same_starters_totals),
+        "same_starters_avg_total": (sum(same_starters_totals) / len(same_starters_totals)) if same_starters_totals else None,
+    }
+
+
+def h2h_runs_adjustment(h2h_runs: dict) -> float:
+    """Ajustement (en runs) sur le total attendu, à partir de l'historique
+    H2H -- deux niveaux, comme documenté dans get_h2h_runs_and_same_starters.
+    """
+    adj = 0.0
+
+    games = h2h_runs.get("games_played", 0)
+    if games >= H2H_RUNS_MIN_GAMES and h2h_runs.get("avg_total") is not None:
+        confidence = min(games / H2H_RUNS_MAX_WEIGHT_GAMES, 1.0)
+        adj += (h2h_runs["avg_total"] - LEAGUE_AVG_TOTAL_RUNS) * H2H_RUNS_SENSITIVITY * confidence / LEAGUE_AVG_TOTAL_RUNS
+
+    same_games = h2h_runs.get("same_starters_games", 0)
+    if same_games >= 1 and h2h_runs.get("same_starters_avg_total") is not None:
+        # Pas de montée en confiance avec le nombre de matchs ici -- même 2-3
+        # matchs avec les mêmes titulaires restent un échantillon minuscule,
+        # le poids réduit (0.3 au lieu de 0.5) fait déjà le travail de prudence.
+        adj += (h2h_runs["same_starters_avg_total"] - LEAGUE_AVG_TOTAL_RUNS) * SAME_STARTERS_RUNS_SENSITIVITY / LEAGUE_AVG_TOTAL_RUNS
+
+    return adj
+
+
+def compute_expected_total(
+    home_runs_pg, away_runs_pg, home_era, away_era, park_tier: int, weather: dict | None, h2h_runs: dict
+) -> float | None:
+    """Total de runs attendu pour ce match précis."""
+    if not home_runs_pg or not away_runs_pg:
+        return None
+
+    home_era_f = _safe_float(home_era) or LEAGUE_AVG_ERA_FOR_TOTALS
+    away_era_f = _safe_float(away_era) or LEAGUE_AVG_ERA_FOR_TOTALS
+
+    # Runs attendus de chaque équipe = sa moyenne de runs marqués, modulée
+    # par la qualité du titulaire adverse (ERA vs moyenne de ligue).
+    expected_home = home_runs_pg * (away_era_f / LEAGUE_AVG_ERA_FOR_TOTALS)
+    expected_away = away_runs_pg * (home_era_f / LEAGUE_AVG_ERA_FOR_TOTALS)
+    total = expected_home + expected_away
+
+    park_multiplier = PARK_FACTOR_TOTAL_MULTIPLIER.get(park_tier, 1.0)
+    total *= park_multiplier
+
+    if weather and weather.get("temp_c") is not None:
+        total *= 1.0 + (weather["temp_c"] - LEAGUE_AVG_TEMP_C) * WEATHER_TEMP_SENSITIVITY
+
+    # L'ajustement H2H est additif en runs (pas un multiplicateur), calculé
+    # en amont comme un delta déjà à l'échelle des runs.
+    total += h2h_runs_adjustment(h2h_runs) * LEAGUE_AVG_TOTAL_RUNS
+
+    return max(total, 1.0)  # un total ne peut pas être négatif ou nul
+
+
+def prob_over_line(expected_total: float, line: float) -> float:
+    """Probabilité que le total réel dépasse la ligne du book, en
+    approximant la distribution des runs totaux par une loi Normale
+    (approximation -- la vraie distribution est légèrement asymétrique,
+    mais suffisante pour une première version).
+    """
+    z = (line - expected_total) / TOTAL_RUNS_STD_DEV
+    return 0.5 * (1 - math.erf(z / math.sqrt(2)))
+
+
+def find_totals_odds(odds_events: list[dict], home_team: str, away_team: str) -> dict | None:
+    """Cherche les prix Over/Under (Pinnacle + PMU) pour ce match, dans la
+    même réponse déjà récupérée pour le moneyline (aucun appel réseau en plus).
+    """
+    event = find_odds_event(odds_events, home_team, away_team)
+    if event is None:
+        return None
+
+    result = {"line": None, "pinnacle_over": None, "pinnacle_under": None, "pmu_over": None, "pmu_under": None}
+    for bookmaker in event.get("bookmakers", []):
+        key = bookmaker.get("key")
+        if key not in ("pinnacle", "pmu_fr"):
+            continue
+        for market in bookmaker.get("markets", []):
+            if market.get("key") != "totals":
+                continue
+            for outcome in market.get("outcomes", []):
+                point = outcome.get("point")
+                name = outcome.get("name")
+                price = outcome.get("price")
+                if result["line"] is None:
+                    result["line"] = point
+                if point != result["line"]:
+                    continue  # ligne différente d'un book à l'autre -- on ignore plutôt que comparer des choses différentes
+                if key == "pinnacle" and name == "Over":
+                    result["pinnacle_over"] = price
+                elif key == "pinnacle" and name == "Under":
+                    result["pinnacle_under"] = price
+                elif key == "pmu_fr" and name == "Over":
+                    result["pmu_over"] = price
+                elif key == "pmu_fr" and name == "Under":
+                    result["pmu_under"] = price
+
+    if result["line"] is None:
+        return None
+    return result
+
+
+def evaluate_totals_value(expected_total: float | None, totals_odds: dict | None) -> dict:
+    """Même logique que evaluate_value, mais pour Over/Under -- edge vs
+    Pinnacle dévigoré, côté PMU comme prix réellement jouable.
+    """
+    result = {
+        "line": None, "expected_total": expected_total, "best_side": None, "best_edge": None,
+        "pinnacle_found": False, "playable_price": None,
+    }
+    if expected_total is None or totals_odds is None:
+        return result
+
+    result["line"] = totals_odds["line"]
+    pin_over, pin_under = totals_odds.get("pinnacle_over"), totals_odds.get("pinnacle_under")
+    if not pin_over or not pin_under:
+        return result
+    result["pinnacle_found"] = True
+
+    market_over, market_under = devig_two_way(pin_over, pin_under)
+    model_over = prob_over_line(expected_total, totals_odds["line"])
+    model_under = 1 - model_over
+
+    edge_over = model_over - market_over
+    edge_under = model_under - market_under
+
+    if edge_over >= edge_under:
+        result["best_side"] = "over"
+        result["best_edge"] = edge_over
+        result["playable_price"] = totals_odds.get("pmu_over")
+        result["model_prob"] = model_over
+    else:
+        result["best_side"] = "under"
+        result["best_edge"] = edge_under
+        result["playable_price"] = totals_odds.get("pmu_under")
+        result["model_prob"] = model_under
+
+    return result
+
+
+def stake_totals_units(totals_value: dict) -> tuple[float, str]:
+    """Mise volontairement SIMPLE et indépendante de celle du moneyline --
+    juste pour voir si ce modèle fonctionne avant de le sophistiquer avec
+    un score de confiance multi-facteurs comme le moneyline.
+    """
+    edge = totals_value.get("best_edge")
+    if edge is None or edge < TOTALS_VALUE_TIER_MODEREE:
+        return 0.0, "pas de value nette sur le Total"
+    if edge > TOTALS_VALUE_TIER_SUSPECT:
+        return 0.5, "edge très large -- suspect, mise réduite par précaution"
+    return 1.0, "edge net vs Pinnacle sur le Total"
+
+
+def format_totals_block(totals_value: dict, units: float, reason: str) -> str:
+    """Section Total, ajoutée à la fin du message par match -- séparée du
+    reste, n'affecte jamais les étoiles ni la sélection moneyline.
+    """
+    if totals_value.get("expected_total") is None:
+        return "🎯 Total : données offensives insuffisantes pour estimer ce soir.\n"
+    if totals_value.get("line") is None:
+        return f"🎯 Total : modèle {totals_value['expected_total']:.1f} runs -- pas de ligne PMU/Pinnacle disponible.\n"
+    if not totals_value.get("pinnacle_found"):
+        return f"🎯 Total : modèle {totals_value['expected_total']:.1f} runs (ligne {totals_value['line']}) -- pas de prix Pinnacle pour comparer.\n"
+
+    side_label = "Over" if totals_value["best_side"] == "over" else "Under"
+    lines = [
+        f"🎯 Total : modèle {totals_value['expected_total']:.1f} runs vs ligne {totals_value['line']} "
+        f"-- edge {totals_value['best_edge']*100:+.1f} pts sur {side_label}\n"
+    ]
+
+    price = totals_value.get("playable_price")
+    if units <= 0:
+        lines.append(f"⚪ Aucune sélection sur le Total ({reason}).\n")
+    else:
+        marker = "🟠" if units <= 0.5 else "🟢"
+        eur = units * EUR_PER_UNIT
+        if price:
+            ev_pct = compute_ev_pct(totals_value["model_prob"], price)
+            lines.append(
+                f"{marker} <b>Total : {side_label} {totals_value['line']}</b> — {units}u ({eur:.2f}€) "
+                f"-- cote PMU @{price}, EV {ev_pct:+.1f}%\n"
+            )
+        else:
+            lines.append(
+                f"{marker} <b>Total : {side_label} {totals_value['line']}</b> — {units}u ({eur:.2f}€) "
+                f"-- cote PMU indisponible, prix non confirmé\n"
+            )
+        lines.append(f"<i>{reason}</i>\n")
+
+    return "".join(lines)
+
+
+# ---------------------------------------------------------------------------
 # 6. Cotes (The Odds API) : Pinnacle pour la value, Betclic pour le prix réel
 # ---------------------------------------------------------------------------
 
@@ -630,14 +903,18 @@ def get_odds_for_mlb() -> list[dict]:
         )
     params = {
         "apiKey": ODDS_API_KEY,
-        # On cible ces deux bookmakers précis directement, plutôt que de passer
-        # par "regions=eu" -- le regroupement par région peut ne pas inclure
+        # On cible ces books précis directement, plutôt que de passer par
+        # "regions=eu" -- le regroupement par région peut ne pas inclure
         # tous les books d'une région pour un sport donné (ex: MLB, un sport
         # secondaire pour un book comme Betclic). "bookmakers" prend le pas
         # sur "regions" si les deux sont fournis, et coûte le même nombre de
-        # credits pour 2 books (le tarif est par tranche de 10 bookmakers).
-        "bookmakers": "betclic,unibet,pinnacle",
-        "markets": "h2h",
+        # credits pour plusieurs books (le tarif est par tranche de 10).
+        # pmu_fr ajouté le 18 août : Betclic/Unibet ne couvrent pas le Total
+        # sur le MLB (vérifié avec check_totals_market.py), PMU si.
+        "bookmakers": "betclic,unibet,pinnacle,pmu_fr",
+        # h2h ET totals demandés ensemble -- un seul appel, pas deux, pour
+        # ne pas doubler la consommation de credits.
+        "markets": "h2h,totals",
         "oddsFormat": "decimal",
     }
     return get_json_with_retries(f"{ODDS_API_BASE}/sports/baseball_mlb/odds", params)
@@ -1404,6 +1681,42 @@ def main() -> None:
             value = evaluate_value(model, odds_events)
 
             value_text = format_value_block(model, value)
+
+            # Section Total -- entièrement séparée, n'affecte jamais les
+            # étoiles, la sélection moneyline, ou sa mise. Enveloppée dans
+            # son propre try/except : un souci ici ne doit jamais faire
+            # perdre le reste du message (déjà validé) ni le match entier.
+            try:
+                home_id = game["teams"]["home"]["team"]["id"]
+                away_id = game["teams"]["away"]["team"]["id"]
+                game_date = game.get("gameDate", "")[:10]
+                home_pitcher_id = game["teams"]["home"].get("probablePitcher", {}).get("id")
+                away_pitcher_id = game["teams"]["away"].get("probablePitcher", {}).get("id")
+
+                home_offense = get_team_season_offense(home_id, CURRENT_SEASON)
+                away_offense = get_team_season_offense(away_id, CURRENT_SEASON)
+                home_runs_pg = home_offense.get("runs_per_game") if home_offense else None
+                away_runs_pg = away_offense.get("runs_per_game") if away_offense else None
+
+                stadium = get_stadium_info(model["home_name"])
+                park_tier = stadium["park_factor_tier"] if stadium else 0
+
+                h2h_runs = get_h2h_runs_and_same_starters(
+                    home_id, away_id, game_date, home_pitcher_id, away_pitcher_id
+                )
+
+                expected_total = compute_expected_total(
+                    home_runs_pg, away_runs_pg, model.get("home_era"), model.get("away_era"),
+                    park_tier, model.get("weather"), h2h_runs,
+                )
+                totals_odds = find_totals_odds(odds_events, model["home_name"], model["away_name"])
+                totals_value = evaluate_totals_value(expected_total, totals_odds)
+                totals_units, totals_reason = stake_totals_units(totals_value)
+
+                value_text += "\n" + format_totals_block(totals_value, totals_units, totals_reason)
+            except Exception as exc:
+                print(f"  (section Total indisponible pour ce match : {exc})")
+
             for chunk in chunk_message(value_text):
                 send_message(chunk)
             matchs_envoyes += 1
