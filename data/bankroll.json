@@ -1,5 +1,5 @@
 {
-  "balance": 76.62499999999993,
+  "balance": 77.06499999999993,
   "history": [
     {
       "date": "2026-07-21",
@@ -2600,6 +2600,86 @@
       "won": true,
       "pnl": 2.04,
       "balance_after": 76.62499999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 824514,
+      "team": "St. Louis Cardinals",
+      "units": 0.5,
+      "price": 1.85,
+      "won": true,
+      "pnl": 0.42500000000000004,
+      "balance_after": 77.04999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 822939,
+      "team": "Tampa Bay Rays",
+      "units": 1.0,
+      "price": 1.61,
+      "won": true,
+      "pnl": 0.6100000000000001,
+      "balance_after": 77.65999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 824725,
+      "team": "Boston Red Sox",
+      "units": 1.0,
+      "price": 1.73,
+      "won": true,
+      "pnl": 0.73,
+      "balance_after": 78.38999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 823589,
+      "team": "San Diego Padres",
+      "units": 1.0,
+      "price": 2.02,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 77.38999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 824077,
+      "team": "Kansas City Royals",
+      "units": 2.0,
+      "price": 1.5,
+      "won": true,
+      "pnl": 1.0,
+      "balance_after": 78.38999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 823668,
+      "team": "Atlanta Braves",
+      "units": 1.0,
+      "price": 1.76,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 77.38999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 824641,
+      "team": "Chicago White Sox",
+      "units": 0.5,
+      "price": 2.4,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 76.88999999999993
+    },
+    {
+      "date": "2026-08-17",
+      "game_pk": 824320,
+      "team": "Los Angeles Dodgers",
+      "units": 0.5,
+      "price": 1.35,
+      "won": true,
+      "pnl": 0.17500000000000004,
+      "balance_after": 77.06499999999993
     }
   ]
 }
