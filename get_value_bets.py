@@ -199,21 +199,41 @@ def count_meaningful_contributors(model: dict, side: str) -> int:
 CONFIDENCE_STAR_THRESHOLDS = [0.03, 0.05, 0.08, 0.11]  # bornes entre 1/2/3/4/5 étoiles
 
 
-def compute_confidence_stars_score(model: dict) -> float:
+MAX_SINGLE_CONTRIBUTION = 0.08  # aucun facteur seul ne peut peser plus que ça dans le score de confiance
+
+
+def compute_confidence_stars_score(model: dict, side: str) -> float:
     """Comme compute_confidence_score, mais PÉNALISE la concentration :
     un seul facteur qui porte l'essentiel du score compte moins qu'une
     somme équivalente répartie sur plusieurs facteurs qui s'accordent,
     même à somme brute égale. Continu, pas un seuil binaire "1 facteur =
     ceci" -- la pénalité dépend de la part réelle du plus gros
     contributeur, pas d'un simple comptage.
+
+    Plafond ajouté le 11 août : la pénalité de concentration seule ne
+    suffisait pas quand LE chiffre brut est énorme -- un facteur unique à
+    28 pts (typique d'un edge "suspect") ressortait à 5/5 étoiles même
+    coupé de moitié, parce que la moitié d'un nombre énorme reste un
+    nombre énorme. Chaque contribution est maintenant plafonnée à
+    MAX_SINGLE_CONTRIBUTION avant même le calcul de concentration -- un
+    facteur isolé, même extrême, ne peut plus jamais dominer le score.
+
+    (Le paramètre "side" n'est plus utilisé pour l'instant -- gardé pour
+    compatibilité avec les appels existants, en attendant une correction
+    du creux à 4 étoiles basée sur l'inspection réelle des cas, pas sur
+    une règle supposée.)
     """
-    contributions = {name: weight * abs(model.get(name, 0.0)) for name, weight in CONFIDENCE_WEIGHTS.items()}
+    contributions = {
+        name: min(weight * abs(model.get(name, 0.0)), MAX_SINGLE_CONTRIBUTION)
+        for name, weight in CONFIDENCE_WEIGHTS.items()
+    }
     raw_score = sum(contributions.values())
     if raw_score <= 0:
         return 0.0
 
     biggest_share = max(contributions.values()) / raw_score
-    return raw_score * (0.5 + 0.5 * (1 - biggest_share))
+    score = raw_score * (0.5 + 0.5 * (1 - biggest_share))
+    return score
 
 
 def confidence_stars(score: float) -> str:
@@ -750,7 +770,7 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
     négatif, pas une question d'opinion.
     """
     edge = value.get("best_edge")
-    stars = confidence_stars(compute_confidence_stars_score(model))
+    stars = confidence_stars(compute_confidence_stars_score(model, value.get("best_side") or "home"))
 
     if edge is None or edge < VALUE_TIER_MODEREE:
         return f"⚪ Aucune value nette détectée ce soir sur ce match. Confiance : {stars}\n"
@@ -1244,7 +1264,7 @@ def build_recap_entry(model: dict, value: dict, units: float, reasons: list[str]
         "fair_odds": compute_fair_odds(model_prob),
         "pinnacle_odds": compute_fair_odds(pinnacle_prob),
         "tier_label": _short_tier_label(reasons),
-        "stars": confidence_stars(compute_confidence_stars_score(model)),
+        "stars": confidence_stars(compute_confidence_stars_score(model, side)),
     }
 
 
