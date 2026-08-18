@@ -112,6 +112,11 @@ def get_team_season_offense(team_id: int, season: int) -> dict | None:
     k_pct = strikeouts / plate_appearances if plate_appearances else None
     bb_pct = walks / plate_appearances if plate_appearances else None
 
+    # Runs par match -- ajouté le 18 août pour le marché Total (get_value_bets.py)
+    games_played = stat.get("gamesPlayed")
+    runs = stat.get("runs")
+    runs_per_game = runs / games_played if games_played else None
+
     return {
         "avg": stat.get("avg"),
         "obp": stat.get("obp"),
@@ -121,6 +126,7 @@ def get_team_season_offense(team_id: int, season: int) -> dict | None:
         "k_pct": k_pct,
         "bb_pct": bb_pct,
         "stolen_bases": stat.get("stolenBases"),
+        "runs_per_game": runs_per_game,
     }
 
 
