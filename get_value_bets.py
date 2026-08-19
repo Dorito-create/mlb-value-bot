@@ -27,13 +27,7 @@ considère ce signal comme fiable qu'après plusieurs semaines de suivi
 montrant une calibration correcte. Ceci n'est pas un conseil de paris,
 juste un outil statistique perso.
 
-NOTE SUR LE LINE-UP RÉEL : dépend du champ "lineups" de l'API MLB, qui n'a
-pas pu être testé en direct pendant l'écriture de ce script. Si le line-up
-réel ne remonte jamais (le modèle retombe alors sur l'OPS de saison, sans
-planter), dis-le et on ajustera le nom du champ ensemble.
-
-Prérequis : une clé gratuite sur https://the-odds-api.com (PAS
-theoddsapi.com, un service différent et plus restrictif) dans ton .env :
+Prérequis : une clé gratuite sur https://the-odds-api.com dans ton .env :
     ODDS_API_KEY=ta_clé
 
 Usage :
@@ -72,110 +66,68 @@ ODDS_API_KEY = os.environ.get("ODDS_API_KEY")
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 CURRENT_SEASON = datetime.date.today().year
 
-LEAGUE_AVG_FIP = 4.20  # approximation courante, à ajuster si besoin (voir README)
-STARTER_SENSITIVITY = 0.065  # % de proba par run de FIP d'écart -- heuristique de départ
-LEAGUE_AVG_OPS = 0.720  # approximation courante, à ajuster si besoin
-OFFENSE_SENSITIVITY = 0.08   # module l'avantage du titulaire selon la force de la ligne adverse
+LEAGUE_AVG_FIP = 4.20
+STARTER_SENSITIVITY = 0.065
+LEAGUE_AVG_OPS = 0.720
+OFFENSE_SENSITIVITY = 0.08
 
-RECENT_FORM_SENSITIVITY = 0.12  # poids de l'écart de forme sur 10 matchs -- volontairement plus fort que le H2H
+RECENT_FORM_SENSITIVITY = 0.12
 
-BACK_TO_BACK_PENALTY = 0.015  # petit désavantage si l'équipe joue sans repos
+BACK_TO_BACK_PENALTY = 0.015
 
-# Splits lanceur domicile/extérieur -- via statSplits/sitCodes de l'API MLB.
-MIN_SPLIT_IP = 15.0       # sous ce seuil de manches, un split est jugé trop peu fiable pour être utilisé
+MIN_SPLIT_IP = 15.0
 HOME_ROAD_SENSITIVITY = 0.05
-PLATOON_SENSITIVITY = 0.10  # doublé après l'analyse du 5 août : signal solide (94% des matchs), sous-exploité
+PLATOON_SENSITIVITY = 0.10
 
 SIT_CODE_HOME = "h"
 SIT_CODE_ROAD = "r"
 SIT_CODE_VS_LHP = "vl"
 SIT_CODE_VS_RHP = "vr"
 
-# NEUTRALISÉS après l'analyse du 5 août sur 131 picks avec composants détaillés :
-# - jour/nuit dominant : 4/15 (27%), P&L -11.12u -- le pire facteur du modèle
-# - fatigue bullpen dominant : 1/6 (17%), P&L -8.08u -- le deuxième pire
-# À eux deux, ils expliquaient la quasi-totalité de la perte nette observée.
-# Poids à 0 plutôt que suppression du code, au cas où on voudrait revoir la
-# méthodologie plus tard avec de meilleures données.
 DAYNIGHT_SENSITIVITY = 0.0
 BULLPEN_FATIGUE_SENSITIVITY = 0.0
 
-# vs_team_adj a été entièrement retiré (pas juste neutralisé) : sur les 157
-# matchs analysés, il valait EXACTEMENT 0.0 à chaque fois -- le mécanisme
-# statSplits/vsTeam de l'API ne renvoie jamais rien d'exploitable. Plus la
-# peine de faire les appels réseau correspondants.
-
-# Vague 2 : style de jeu (approche + pression sur les bases) et batteurs
-# déjà rencontrés par ce titulaire.
-LEAGUE_AVG_K_PCT = 0.225   # approximation courante, à ajuster si besoin
-LEAGUE_AVG_BB_PCT = 0.085  # approximation courante, à ajuster si besoin
+LEAGUE_AVG_K_PCT = 0.225
+LEAGUE_AVG_BB_PCT = 0.085
 PLAYSTYLE_SENSITIVITY = 0.15
-STOLEN_BASE_SENSITIVITY = 0.00008  # % de proba par vol de but d'écart (petit, sur toute la saison)
+STOLEN_BASE_SENSITIVITY = 0.00008
 
-MIN_VS_PITCHER_PA = 3       # sous ce nombre de passages, l'historique batteur/lanceur est ignoré (pur bruit)
-VS_PITCHER_SENSITIVITY = 0.02   # poids symbolique, volontairement faible -- petit échantillon structurel
+MIN_VS_PITCHER_PA = 3
+VS_PITCHER_SENSITIVITY = 0.02
 
-H2H_MIN_GAMES = 2             # sous ce seuil, on ignore le H2H (trop peu de matchs pour compter)
-H2H_MAX_WEIGHT_GAMES = 12     # au-delà, le poids ne grossit plus (rivalité de division bien établie)
-H2H_SENSITIVITY = 0.10        # poids maximal, atteint seulement à partir de H2H_MAX_WEIGHT_GAMES matchs
+H2H_MIN_GAMES = 2
+H2H_MAX_WEIGHT_GAMES = 12
+H2H_SENSITIVITY = 0.10
 
-VALUE_TIER_FORTE = 0.08    # edge >= 8 points de % -> "value forte"
-VALUE_TIER_MODEREE = 0.03  # edge >= 3 points de % -> "value modérée"
-VALUE_TIER_SUSPECT = 0.15  # au-delà, un edge aussi large vs Pinnacle est plus probablement une erreur qu'une pépite
+VALUE_TIER_FORTE = 0.08
+VALUE_TIER_MODEREE = 0.03
+VALUE_TIER_SUSPECT = 0.15
 
-BOOKS_AGREE_TOLERANCE = 0.05  # Betclic/Unibet et Pinnacle jugés "d'accord" si leurs probas dévigorées sont à <5 pts
+BOOKS_AGREE_TOLERANCE = 0.05
 
-# Score de confiance combiné : les paliers de mise ci-dessous en dépendent.
-# Depuis le 6 août, ce n'est plus le titulaire seul qui pilote la mise --
-# c'est une somme pondérée de plusieurs composantes, avec des coefficients
-# qui reflètent ce que l'analyse du 5 août (et le classement du 6 août) a
-# montré comme fiable ou pas. |pitcher_quality_adj| reste le signal le
-# plus validé (poids 1.0, seul facteur testé empiriquement jusqu'ici) ;
-# les autres comptent, mais avec un poids réduit tant qu'on n'a pas
-# assez de recul dessus individuellement.
 CONFIDENCE_WEIGHTS = {
-    # Analyse par paliers du 6 août sur 137 picks (voir README) :
-    "pitcher_quality_adj": 1.0,   # Tier 1 -- validé, mais pas monotone (culmine 5-10 pts, redescend au-delà)
-    "home_road_adj": 1.0,         # Tier 1 -- promu : tendance la plus nette de tout le modèle (42%->70% par palier)
-    "form_adj": 0.4,               # Tier 2 -- tendance positive, échantillon haut encore petit (15 picks)
-    "h2h_adj": 0.35,               # Tier 2 -- idem, échantillon haut encore plus petit (8 picks)
-    "adversity_adj": 0.3,          # Aucune variance observée (>2 pts quasi jamais) -- pas de preuve, poids inchangé
-    "platoon_adj": 0.25,           # Idem -- pas assez de données pour juger
-    "playstyle_adj": 0.25,         # Idem
-    "arsenal_adj": 0.15,           # Idem -- expérimental, line-up réel seulement
-    "batters_faced_adj": 0.15,     # Idem -- expérimental, line-up réel seulement
+    "pitcher_quality_adj": 1.0,
+    "home_road_adj": 1.0,
+    "form_adj": 0.4,
+    "h2h_adj": 0.35,
+    "adversity_adj": 0.3,
+    "platoon_adj": 0.25,
+    "playstyle_adj": 0.25,
+    "arsenal_adj": 0.15,
+    "batters_faced_adj": 0.15,
 }
-CONFIDENCE_SCORE_MIN = 0.05     # sous ce seuil, la mise est plafonnée à 0.5u (comme l'ancien "duel neutre")
-CONFIDENCE_SCORE_STRONG = 0.12  # au-delà, la zone la plus rentable observée -- ouvre la porte au 2u
+CONFIDENCE_SCORE_MIN = 0.05
+CONFIDENCE_SCORE_STRONG = 0.12
 
-# Le 2u exige maintenant AUSSI que le score fort ne repose pas sur une
-# seule composante : au moins MULTI_FACTOR_MIN_CONTRIBUTORS doivent
-# individuellement dépasser ce seuil brut (avant pondération). Un chiffre
-# isolé peut être un artefact ; plusieurs qui s'accordent, beaucoup moins.
 INDIVIDUAL_CONTRIBUTION_MIN = 0.02
 MULTI_FACTOR_MIN_CONTRIBUTORS = 2
 
 
 def compute_confidence_score(model: dict) -> float:
-    """Somme pondérée de plusieurs composantes du modèle -- remplace le
-    signal titulaire seul comme base de la mise, tout en lui gardant le
-    poids le plus fort (seul facteur validé empiriquement pour l'instant).
-    """
     return sum(weight * abs(model.get(name, 0.0)) for name, weight in CONFIDENCE_WEIGHTS.items())
 
 
 def count_meaningful_contributors(model: dict, side: str) -> int:
-    """Nombre de composantes qui contribuent chacune de façon notable ET
-    dans la MÊME DIRECTION que la sélection (side='home' ou 'away') --
-    pas juste une ampleur notable, peu importe le sens.
-
-    Bug corrigé le 9 août : deux 2u perdants (Braves le 7, Phillies le 8)
-    avaient un contributeur qui allait en fait CONTRE la sélection (ex:
-    pitcher_quality_adj favorisait l'adversaire), mais comptait quand même
-    comme "confirmation" parce que seule l'ampleur était vérifiée, pas le
-    sens. Toutes les composantes sont dans la convention "positif =
-    favorise l'équipe à domicile".
-    """
     count = 0
     for name in CONFIDENCE_WEIGHTS:
         val = model.get(name, 0.0)
@@ -186,45 +138,11 @@ def count_meaningful_contributors(model: dict, side: str) -> int:
     return count
 
 
-# ---------------------------------------------------------------------------
-# Score de confiance affiché en étoiles (11 août) -- une échelle à part,
-# jamais utilisée pour décider la mise. compute_confidence_score et
-# count_meaningful_contributors ci-dessus restent INCHANGÉS et continuent
-# de piloter stake_units exactement comme avant (calibré le 6 août, ne
-# pas casser). Cette nouvelle échelle répond à une question différente :
-# "est-ce que je fais confiance à ma propre lecture de ce match", jamais
-# "combien miser" ou "l'edge vs Pinnacle est-il grand". Calculée pour
-# TOUS les matchs, y compris "aucune sélection" et "méfiance" -- jamais
-# dérivée de l'edge, du palier de mise, ou de l'étiquette "suspect".
-# ---------------------------------------------------------------------------
-
-CONFIDENCE_STAR_THRESHOLDS = [0.03, 0.05, 0.08, 0.11]  # bornes entre 1/2/3/4/5 étoiles
-
-
-MAX_SINGLE_CONTRIBUTION = 0.08  # aucun facteur seul ne peut peser plus que ça dans le score de confiance
+CONFIDENCE_STAR_THRESHOLDS = [0.03, 0.05, 0.08, 0.11]
+MAX_SINGLE_CONTRIBUTION = 0.08
 
 
 def compute_confidence_stars_score(model: dict, side: str) -> float:
-    """Comme compute_confidence_score, mais PÉNALISE la concentration :
-    un seul facteur qui porte l'essentiel du score compte moins qu'une
-    somme équivalente répartie sur plusieurs facteurs qui s'accordent,
-    même à somme brute égale. Continu, pas un seuil binaire "1 facteur =
-    ceci" -- la pénalité dépend de la part réelle du plus gros
-    contributeur, pas d'un simple comptage.
-
-    Plafond ajouté le 11 août : la pénalité de concentration seule ne
-    suffisait pas quand LE chiffre brut est énorme -- un facteur unique à
-    28 pts (typique d'un edge "suspect") ressortait à 5/5 étoiles même
-    coupé de moitié, parce que la moitié d'un nombre énorme reste un
-    nombre énorme. Chaque contribution est maintenant plafonnée à
-    MAX_SINGLE_CONTRIBUTION avant même le calcul de concentration -- un
-    facteur isolé, même extrême, ne peut plus jamais dominer le score.
-
-    (Le paramètre "side" n'est plus utilisé pour l'instant -- gardé pour
-    compatibilité avec les appels existants, en attendant une correction
-    du creux à 4 étoiles basée sur l'inspection réelle des cas, pas sur
-    une règle supposée.)
-    """
     contributions = {
         name: min(weight * abs(model.get(name, 0.0)), MAX_SINGLE_CONTRIBUTION)
         for name, weight in CONFIDENCE_WEIGHTS.items()
@@ -232,14 +150,11 @@ def compute_confidence_stars_score(model: dict, side: str) -> float:
     raw_score = sum(contributions.values())
     if raw_score <= 0:
         return 0.0
-
     biggest_share = max(contributions.values()) / raw_score
-    score = raw_score * (0.5 + 0.5 * (1 - biggest_share))
-    return score
+    return raw_score * (0.5 + 0.5 * (1 - biggest_share))
 
 
 def confidence_stars(score: float) -> str:
-    """Convertit le score pénalisé en 1 à 5 étoiles affichables."""
     n = 5
     for i, threshold in enumerate(CONFIDENCE_STAR_THRESHOLDS):
         if score < threshold:
@@ -247,18 +162,12 @@ def confidence_stars(score: float) -> str:
             break
     return "⭐" * n
 
-# Système d'unités pour le suivi : 1u = 1% d'une bankroll de suivi fictive
-# de 100 (départ), indépendant de ta grille euro réelle ci-dessous.
-MAX_UNITS_PER_PICK = 2.0
 
-EUR_PER_UNIT = 5.0  # 0.5u = 2.5€, 1u = 5€, 2u = 10€ -- ta grille personnelle de mise réelle
+MAX_UNITS_PER_PICK = 2.0
+EUR_PER_UNIT = 5.0
 
 
 def units_to_eur_display(units: float) -> str:
-    """Traduit une mise en euros pour ta bankroll réelle. Grille purement
-    linéaire (0.5u=2.5€, 1u=5€, 2u=10€) -- plus de cas particulier depuis
-    que la mise elle-même est mieux calibrée (voir stake_units).
-    """
     return f"{units * EUR_PER_UNIT:.2f}€"
 
 
@@ -266,7 +175,6 @@ PARIS_TZ = ZoneInfo("Europe/Paris")
 
 
 def format_game_time_paris(game_time_utc: str) -> str:
-    """Convertit l'heure UTC du match (format API MLB) en heure de Paris lisible."""
     try:
         dt_utc = datetime.datetime.fromisoformat(game_time_utc.replace("Z", "+00:00"))
         dt_paris = dt_utc.astimezone(PARIS_TZ)
@@ -282,55 +190,31 @@ def _safe_float(value) -> float | None:
         return None
 
 
-# ---------------------------------------------------------------------------
-# 1. Programme du jour, avec line-up réel si déjà publié
-# ---------------------------------------------------------------------------
-
 def get_games_for_value_bets(date_str: str | None = None) -> list[dict]:
-    """Comme get_schedule.get_games_for_date, avec en plus le hydrate
-    "lineups" : le line-up réel n'est généralement publié que 1 à 3h avant
-    le match, donc ce script est plus précis lancé en fin d'après-midi/soir
-    qu'au réveil.
-    """
     if date_str is None:
         date_str = datetime.date.today().isoformat()
-
-    params = {
-        "sportId": 1,
-        "date": date_str,
-        "hydrate": "team,probablePitcher,venue,lineups",
-    }
+    params = {"sportId": 1, "date": date_str, "hydrate": "team,probablePitcher,venue,lineups"}
     data = get_json_with_retries(f"{MLB_API_BASE}/schedule", params)
-
     games = []
     for day in data.get("dates", []):
         games.extend(day.get("games", []))
-
-    games.sort(key=lambda g: g.get("gameDate", ""))  # ordre chronologique -- pas garanti tel quel par l'API
+    games.sort(key=lambda g: g.get("gameDate", ""))
     return games
 
 
-# ---------------------------------------------------------------------------
-# 2. Bilans domicile/extérieur/forme récente (pour le Log5 + forme)
-# ---------------------------------------------------------------------------
-
 def get_team_split_records(season: int) -> dict:
-    """Bilan domicile/extérieur/global/10 derniers matchs, via les standings MLB."""
     params = {"leagueId": "103,104", "season": season, "hydrate": "team"}
     data = get_json_with_retries(f"{MLB_API_BASE}/standings", params)
-
     records = {}
     for division in data.get("records", []):
         for team_record in division.get("teamRecords", []):
             team_id = team_record.get("team", {}).get("id")
             if team_id is None:
                 continue
-
             overall_pct = _safe_float(team_record.get("winningPercentage")) or 0.5
             home_pct = None
             road_pct = None
             last10_pct = None
-
             for split in team_record.get("splitRecords", []):
                 wins = split.get("wins")
                 losses = split.get("losses")
@@ -345,19 +229,16 @@ def get_team_split_records(season: int) -> dict:
                     road_pct = pct
                 elif split_type == "lastTen":
                     last10_pct = pct
-
             records[team_id] = {
                 "overall_pct": overall_pct,
                 "home_pct": home_pct if home_pct is not None else overall_pct,
                 "road_pct": road_pct if road_pct is not None else overall_pct,
                 "last10_pct": last10_pct if last10_pct is not None else overall_pct,
             }
-
     return records
 
 
 def log5(pct_a: float, pct_b: float) -> float:
-    """Probabilité que A batte B, méthode Log5 (Bill James)."""
     denom = pct_a + pct_b - 2 * pct_a * pct_b
     if denom <= 0:
         return 0.5
@@ -365,27 +246,16 @@ def log5(pct_a: float, pct_b: float) -> float:
 
 
 def recent_form_edge(home_last10_pct: float, away_last10_pct: float) -> float:
-    """Écart de forme sur les 10 derniers matchs -- en PLUS du bilan de
-    saison utilisé dans le Log5, pas à sa place.
-    """
     return (home_last10_pct - away_last10_pct) * RECENT_FORM_SENSITIVITY
 
 
-# ---------------------------------------------------------------------------
-# 3. Titulaire + adversité (line-up réel si publié, sinon OPS de saison)
-# ---------------------------------------------------------------------------
-
 def starter_edge(pitcher_fip: float | None) -> float:
-    """Avantage en proba apporté par un titulaire, vs la moyenne de la ligue."""
     if pitcher_fip is None:
         return 0.0
     return (LEAGUE_AVG_FIP - pitcher_fip) * STARTER_SENSITIVITY
 
 
 def opposing_offense_penalty(opposing_ops) -> float:
-    """Module l'avantage d'un titulaire selon la force de la ligne de
-    batteurs qu'il affronte CE SOIR, par rapport à la moyenne de la ligue.
-    """
     ops = _safe_float(opposing_ops)
     if ops is None:
         return 0.0
@@ -393,11 +263,6 @@ def opposing_offense_penalty(opposing_ops) -> float:
 
 
 def _extract_lineup_player_ids(game: dict, side: str) -> list[int]:
-    """Essaie plusieurs formes possibles du champ "lineups" de l'API MLB.
-
-    Champ expérimental, non testé en direct -- si ça ne remonte jamais
-    rien de grave : le code appelant retombe sur l'OPS de saison.
-    """
     lineups = game.get("lineups", {})
     for key in (f"{side}Players", side):
         entries = lineups.get(key)
@@ -426,38 +291,24 @@ def get_batter_season_ops(player_id: int, season: int) -> float | None:
 
 
 def get_effective_offense_ops(game: dict, side: str, team_id: int, season: int) -> tuple[float | None, bool]:
-    """OPS à utiliser pour l'adversité : le line-up réel s'il est publié,
-    sinon l'OPS de saison de l'équipe. Renvoie (ops, line_up_reel_utilise).
-    """
     player_ids = _extract_lineup_player_ids(game, side)
     if player_ids:
         ops_values = [v for v in (get_batter_season_ops(pid, season) for pid in player_ids) if v is not None]
         if ops_values:
             return sum(ops_values) / len(ops_values), True
-
     offense = get_team_season_offense(team_id, season)
     return (_safe_float(offense["ops"]) if offense else None), False
 
 
-# ---------------------------------------------------------------------------
-# 3bis. Splits lanceur supplémentaires (domicile/extérieur, jour/nuit,
-# platoon, vs cette équipe) -- Vague 1
-# ---------------------------------------------------------------------------
-
 def get_pitcher_split_stat(pitcher_id: int, season: int, sit_code: str) -> tuple[float, float] | None:
-    """ERA et manches lancées pour un split donné (sitCodes). None si
-    indisponible ou si l'échantillon est trop petit pour être fiable.
-    """
     params = {"stats": "statSplits", "group": "pitching", "season": season, "sitCodes": sit_code}
     try:
         data = get_json_with_retries(f"{MLB_API_BASE}/people/{pitcher_id}/stats", params)
     except Exception:
         return None
-
     stats_groups = data.get("stats", [])
     if not stats_groups or not stats_groups[0].get("splits"):
         return None
-
     stat = stats_groups[0]["splits"][0]["stat"]
     era = _safe_float(stat.get("era"))
     ip = innings_to_float(stat.get("inningsPitched"))
@@ -467,9 +318,6 @@ def get_pitcher_split_stat(pitcher_id: int, season: int, sit_code: str) -> tuple
 
 
 def get_pitcher_hand(pitcher_id: int, probable_pitcher_obj: dict) -> str | None:
-    """Main du lanceur ('L' ou 'R'). Essaie d'abord l'objet déjà récupéré
-    via le programme du jour, sinon fait un appel dédié.
-    """
     hand = probable_pitcher_obj.get("pitchHand", {}).get("code")
     if hand:
         return hand
@@ -484,14 +332,12 @@ def get_pitcher_hand(pitcher_id: int, probable_pitcher_obj: dict) -> str | None:
 
 
 def get_team_offense_vs_hand(team_id: int, season: int, hand_code: str) -> float | None:
-    """OPS d'une équipe face aux lanceurs d'une main donnée ('L' ou 'R')."""
     sit_code = SIT_CODE_VS_LHP if hand_code == "L" else SIT_CODE_VS_RHP
     params = {"stats": "statSplits", "group": "hitting", "season": season, "sitCodes": sit_code}
     try:
         data = get_json_with_retries(f"{MLB_API_BASE}/teams/{team_id}/stats", params)
     except Exception:
         return None
-
     stats_groups = data.get("stats", [])
     if not stats_groups or not stats_groups[0].get("splits"):
         return None
@@ -499,10 +345,7 @@ def get_team_offense_vs_hand(team_id: int, season: int, hand_code: str) -> float
 
 
 def split_era_edge(split_stat: tuple[float, float] | None, season_era, sensitivity: float) -> float:
-    """Ajustement générique à partir d'un split ERA vs l'ERA de saison --
-    réutilisé pour le split domicile/extérieur.
-    """
-    season_era = _safe_float(season_era)  # l'API renvoie l'ERA en chaîne ("3.45"), pas en nombre
+    season_era = _safe_float(season_era)
     if split_stat is None or season_era is None:
         return 0.0
     split_era, _ip = split_stat
@@ -510,61 +353,36 @@ def split_era_edge(split_stat: tuple[float, float] | None, season_era, sensitivi
 
 
 def platoon_edge(team_ops_vs_hand: float | None, team_ops_season: float | None) -> float:
-    """Edge pour LE LANCEUR selon que la ligne adverse frappe mieux ou
-    moins bien que sa moyenne de saison contre sa main précise. Positif =
-    avantage pour le lanceur (ligne plus faible que d'habitude contre
-    cette main).
-    """
     if team_ops_vs_hand is None or team_ops_season is None:
         return 0.0
     return (team_ops_season - team_ops_vs_hand) * PLATOON_SENSITIVITY
 
 
-# ---------------------------------------------------------------------------
-# Vague 2 : style de jeu (approche au bâton + pression sur les bases) et
-# batteurs déjà rencontrés par ce titulaire
-# ---------------------------------------------------------------------------
-
 def playstyle_edge(opposing_offense: dict | None) -> float:
-    """Avantage pour LE LANCEUR selon le style de jeu de la ligne adverse :
-    une ligne qui prend beaucoup de strikeouts et peu de buts sur balles
-    (style agressif, contact tôt dans le compte) est un peu plus facile à
-    négocier ; une ligne patiente (BB% haut, K% bas) est plus coriace. Le
-    vol de bases (pression) joue légèrement en défaveur du lanceur.
-    """
     if opposing_offense is None:
         return 0.0
-
     k_pct = opposing_offense.get("k_pct")
     bb_pct = opposing_offense.get("bb_pct")
     stolen_bases = opposing_offense.get("stolen_bases")
-
     edge = 0.0
     if k_pct is not None:
         edge += (k_pct - LEAGUE_AVG_K_PCT) * PLAYSTYLE_SENSITIVITY
     if bb_pct is not None:
         edge -= (bb_pct - LEAGUE_AVG_BB_PCT) * PLAYSTYLE_SENSITIVITY
     if stolen_bases is not None:
-        edge -= stolen_bases * STOLEN_BASE_SENSITIVITY  # plus l'équipe vole de buts sur la saison, plus la pression est réelle
-
+        edge -= stolen_bases * STOLEN_BASE_SENSITIVITY
     return edge
 
 
 def get_batter_vs_pitcher_stat(batter_id: int, pitcher_id: int, season: int) -> dict | None:
-    """Historique d'un batteur précis face à CE lanceur précis, cette
-    saison. None si l'échantillon est trop petit (quelques passages au
-    bâton seulement -- ce qui est presque toujours le cas).
-    """
     params = {"stats": "vsPlayer", "group": "hitting", "season": season, "opposingPlayerId": pitcher_id}
     try:
         data = get_json_with_retries(f"{MLB_API_BASE}/people/{batter_id}/stats", params)
     except Exception:
         return None
-
     stats_groups = data.get("stats", [])
     if not stats_groups or not stats_groups[0].get("splits"):
         return None
-
     stat = stats_groups[0]["splits"][0]["stat"]
     pa = stat.get("plateAppearances") or 0
     if pa < MIN_VS_PITCHER_PA:
@@ -573,43 +391,24 @@ def get_batter_vs_pitcher_stat(batter_id: int, pitcher_id: int, season: int) -> 
 
 
 def batters_vs_pitcher_edge(batter_ids: list[int], pitcher_id: int | None, season: int, league_avg_ops: float) -> float:
-    """Moyenne (fortement atténuée) de l'historique des batteurs du
-    line-up réel face à ce titulaire précis. Volontairement pondéré très
-    bas : l'échantillon par duel individuel est presque toujours minuscule
-    (quelques face-à-face dans la saison), donc peu fiable en soi -- mais
-    ça reste un signal que le staff et les joueurs eux-mêmes regardent.
-    """
     if pitcher_id is None or not batter_ids:
         return 0.0
-
     ops_values = []
     for batter_id in batter_ids:
         stat = get_batter_vs_pitcher_stat(batter_id, pitcher_id, season)
         if stat and stat["ops"] is not None:
             ops_values.append(stat["ops"])
-
     if not ops_values:
         return 0.0
-
     avg_ops = sum(ops_values) / len(ops_values)
     return (avg_ops - league_avg_ops) * VS_PITCHER_SENSITIVITY
 
-
-
-
-# ---------------------------------------------------------------------------
-# 4. Repos + fatigue du bullpen
-# ---------------------------------------------------------------------------
 
 def rest_edge(days_off: int | None) -> float:
     if days_off == 0:
         return -BACK_TO_BACK_PENALTY
     return 0.0
 
-
-# ---------------------------------------------------------------------------
-# 5. H2H pondéré par l'échantillon
-# ---------------------------------------------------------------------------
 
 def h2h_edge(h2h: dict) -> float:
     games = h2h.get("games_played", 0)
@@ -621,48 +420,34 @@ def h2h_edge(h2h: dict) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 5bis. Marché Total (over/under) -- ajouté le 18 août, ENTIÈREMENT séparé
-# du moneyline. Ne contribue JAMAIS aux étoiles, au choix du vainqueur, ni
-# à la mise moneyline -- une section à part dans le message, avec sa
-# propre mise indépendante et volontairement simple (1u/0.5u/aucune),
-# pour d'abord voir si le modèle fonctionne avant de le sophistiquer.
-#
-# Principe : runs attendus par équipe = (sa moyenne de runs marqués) ×
-# (ERA du titulaire adverse ÷ ERA moyenne de ligue), ajusté par le park
-# factor et la température (le vent est pour l'instant volontairement
-# ignoré -- sans l'orientation de chaque stade, on ne sait pas s'il
-# souffle vers l'intérieur ou l'extérieur, une donnée non trouvée de
-# façon fiable au moment de l'écriture -- voir le README).
+# Marché Total (over/under) -- ajouté le 18 août, ENTIÈREMENT séparé du
+# moneyline. Ne contribue JAMAIS aux étoiles, au choix du vainqueur, ni à
+# la mise moneyline -- une section à part dans le message, avec sa propre
+# mise indépendante et volontairement simple (1u/0.5u/aucune).
 # ---------------------------------------------------------------------------
 
-LEAGUE_AVG_ERA_FOR_TOTALS = 4.20  # même échelle que LEAGUE_AVG_FIP
-LEAGUE_AVG_TOTAL_RUNS = 9.0       # ~2x une moyenne de runs par équipe par match
+LEAGUE_AVG_ERA_FOR_TOTALS = 4.20
+LEAGUE_AVG_TOTAL_RUNS = 9.0
 
 PARK_FACTOR_TOTAL_MULTIPLIER = {-2: 0.90, -1: 0.95, 0: 1.00, 1: 1.05, 2: 1.10}
 
 LEAGUE_AVG_TEMP_C = 20.0
-WEATHER_TEMP_SENSITIVITY = 0.002  # effet volontairement modeste -- pas de direction de vent pour l'instant
+WEATHER_TEMP_SENSITIVITY = 0.002
 
 H2H_RUNS_MIN_GAMES = 2
 H2H_RUNS_MAX_WEIGHT_GAMES = 8
 H2H_RUNS_SENSITIVITY = 0.5
-SAME_STARTERS_RUNS_SENSITIVITY = 0.3  # poids plus faible -- échantillon presque toujours minuscule (0-2 matchs)
+SAME_STARTERS_RUNS_SENSITIVITY = 0.3
 
-TOTAL_RUNS_STD_DEV = 3.5  # écart-type approximatif du total de runs par match MLB (approximation Normale)
+TOTAL_RUNS_STD_DEV = 3.5
 
-TOTALS_VALUE_TIER_MODEREE = 0.03  # même seuil que le moneyline, mais appliqué à une proba over/under
+TOTALS_VALUE_TIER_MODEREE = 0.03
 TOTALS_VALUE_TIER_SUSPECT = 0.15
 
 
 def get_h2h_runs_and_same_starters(
     team_a_id: int, team_b_id: int, before_date_str: str, home_pitcher_id, away_pitcher_id
 ) -> dict:
-    """Étend le principe du H2H existant, mais pour le TOTAL de runs (pas
-    qui gagne) : moyenne de runs marqués par les deux équipes cumulées sur
-    leurs confrontations cette saison, et à part, la même moyenne
-    restreinte aux matchs où CES DEUX titulaires précis étaient déjà
-    face à face (échantillon presque toujours minuscule, poids réduit).
-    """
     params = {
         "sportId": 1,
         "teamId": team_a_id,
@@ -705,38 +490,25 @@ def get_h2h_runs_and_same_starters(
 
 
 def h2h_runs_adjustment(h2h_runs: dict) -> float:
-    """Ajustement (en runs) sur le total attendu, à partir de l'historique
-    H2H -- deux niveaux, comme documenté dans get_h2h_runs_and_same_starters.
-    """
     adj = 0.0
-
     games = h2h_runs.get("games_played", 0)
     if games >= H2H_RUNS_MIN_GAMES and h2h_runs.get("avg_total") is not None:
         confidence = min(games / H2H_RUNS_MAX_WEIGHT_GAMES, 1.0)
         adj += (h2h_runs["avg_total"] - LEAGUE_AVG_TOTAL_RUNS) * H2H_RUNS_SENSITIVITY * confidence / LEAGUE_AVG_TOTAL_RUNS
-
     same_games = h2h_runs.get("same_starters_games", 0)
     if same_games >= 1 and h2h_runs.get("same_starters_avg_total") is not None:
-        # Pas de montée en confiance avec le nombre de matchs ici -- même 2-3
-        # matchs avec les mêmes titulaires restent un échantillon minuscule,
-        # le poids réduit (0.3 au lieu de 0.5) fait déjà le travail de prudence.
         adj += (h2h_runs["same_starters_avg_total"] - LEAGUE_AVG_TOTAL_RUNS) * SAME_STARTERS_RUNS_SENSITIVITY / LEAGUE_AVG_TOTAL_RUNS
-
     return adj
 
 
 def compute_expected_total(
     home_runs_pg, away_runs_pg, home_era, away_era, park_tier: int, weather: dict | None, h2h_runs: dict
 ) -> float | None:
-    """Total de runs attendu pour ce match précis."""
     if not home_runs_pg or not away_runs_pg:
         return None
-
     home_era_f = _safe_float(home_era) or LEAGUE_AVG_ERA_FOR_TOTALS
     away_era_f = _safe_float(away_era) or LEAGUE_AVG_ERA_FOR_TOTALS
 
-    # Runs attendus de chaque équipe = sa moyenne de runs marqués, modulée
-    # par la qualité du titulaire adverse (ERA vs moyenne de ligue).
     expected_home = home_runs_pg * (away_era_f / LEAGUE_AVG_ERA_FOR_TOTALS)
     expected_away = away_runs_pg * (home_era_f / LEAGUE_AVG_ERA_FOR_TOTALS)
     total = expected_home + expected_away
@@ -747,27 +519,17 @@ def compute_expected_total(
     if weather and weather.get("temp_c") is not None:
         total *= 1.0 + (weather["temp_c"] - LEAGUE_AVG_TEMP_C) * WEATHER_TEMP_SENSITIVITY
 
-    # L'ajustement H2H est additif en runs (pas un multiplicateur), calculé
-    # en amont comme un delta déjà à l'échelle des runs.
     total += h2h_runs_adjustment(h2h_runs) * LEAGUE_AVG_TOTAL_RUNS
 
-    return max(total, 1.0)  # un total ne peut pas être négatif ou nul
+    return max(total, 1.0)
 
 
 def prob_over_line(expected_total: float, line: float) -> float:
-    """Probabilité que le total réel dépasse la ligne du book, en
-    approximant la distribution des runs totaux par une loi Normale
-    (approximation -- la vraie distribution est légèrement asymétrique,
-    mais suffisante pour une première version).
-    """
     z = (line - expected_total) / TOTAL_RUNS_STD_DEV
     return 0.5 * (1 - math.erf(z / math.sqrt(2)))
 
 
 def find_totals_odds(odds_events: list[dict], home_team: str, away_team: str) -> dict | None:
-    """Cherche les prix Over/Under (Pinnacle + PMU) pour ce match, dans la
-    même réponse déjà récupérée pour le moneyline (aucun appel réseau en plus).
-    """
     event = find_odds_event(odds_events, home_team, away_team)
     if event is None:
         return None
@@ -787,7 +549,7 @@ def find_totals_odds(odds_events: list[dict], home_team: str, away_team: str) ->
                 if result["line"] is None:
                     result["line"] = point
                 if point != result["line"]:
-                    continue  # ligne différente d'un book à l'autre -- on ignore plutôt que comparer des choses différentes
+                    continue
                 if key == "pinnacle" and name == "Over":
                     result["pinnacle_over"] = price
                 elif key == "pinnacle" and name == "Under":
@@ -803,9 +565,6 @@ def find_totals_odds(odds_events: list[dict], home_team: str, away_team: str) ->
 
 
 def evaluate_totals_value(expected_total: float | None, totals_odds: dict | None) -> dict:
-    """Même logique que evaluate_value, mais pour Over/Under -- edge vs
-    Pinnacle dévigoré, côté PMU comme prix réellement jouable.
-    """
     result = {
         "line": None, "expected_total": expected_total, "best_side": None, "best_edge": None,
         "pinnacle_found": False, "playable_price": None,
@@ -841,10 +600,6 @@ def evaluate_totals_value(expected_total: float | None, totals_odds: dict | None
 
 
 def stake_totals_units(totals_value: dict) -> tuple[float, str]:
-    """Mise volontairement SIMPLE et indépendante de celle du moneyline --
-    juste pour voir si ce modèle fonctionne avant de le sophistiquer avec
-    un score de confiance multi-facteurs comme le moneyline.
-    """
     edge = totals_value.get("best_edge")
     if edge is None or edge < TOTALS_VALUE_TIER_MODEREE:
         return 0.0, "pas de value nette sur le Total"
@@ -854,9 +609,6 @@ def stake_totals_units(totals_value: dict) -> tuple[float, str]:
 
 
 def format_totals_block(totals_value: dict, units: float, reason: str) -> str:
-    """Section Total, ajoutée à la fin du message par match -- séparée du
-    reste, n'affecte jamais les étoiles ni la sélection moneyline.
-    """
     if totals_value.get("expected_total") is None:
         return "🎯 Total : données offensives insuffisantes pour estimer ce soir.\n"
     if totals_value.get("line") is None:
@@ -892,10 +644,6 @@ def format_totals_block(totals_value: dict, units: float, reason: str) -> str:
     return "".join(lines)
 
 
-# ---------------------------------------------------------------------------
-# 6. Cotes (The Odds API) : Pinnacle pour la value, Betclic pour le prix réel
-# ---------------------------------------------------------------------------
-
 def get_odds_for_mlb() -> list[dict]:
     if not ODDS_API_KEY:
         raise RuntimeError(
@@ -904,17 +652,7 @@ def get_odds_for_mlb() -> list[dict]:
         )
     params = {
         "apiKey": ODDS_API_KEY,
-        # On cible ces books précis directement, plutôt que de passer par
-        # "regions=eu" -- le regroupement par région peut ne pas inclure
-        # tous les books d'une région pour un sport donné (ex: MLB, un sport
-        # secondaire pour un book comme Betclic). "bookmakers" prend le pas
-        # sur "regions" si les deux sont fournis, et coûte le même nombre de
-        # credits pour plusieurs books (le tarif est par tranche de 10).
-        # pmu_fr ajouté le 18 août : Betclic/Unibet ne couvrent pas le Total
-        # sur le MLB (vérifié avec check_totals_market.py), PMU si.
         "bookmakers": "betclic,unibet,pinnacle,pmu_fr",
-        # h2h ET totals demandés ensemble -- un seul appel, pas deux, pour
-        # ne pas doubler la consommation de credits.
         "markets": "h2h,totals",
         "oddsFormat": "decimal",
     }
@@ -934,7 +672,6 @@ def find_odds_event(odds_events: list[dict], home_team: str, away_team: str) -> 
     for event in odds_events:
         if event.get("home_team") == home_team and event.get("away_team") == away_team:
             return event
-
     home_candidates = _nickname_candidates(home_team)
     away_candidates = _nickname_candidates(away_team)
     for event in odds_events:
@@ -946,7 +683,6 @@ def find_odds_event(odds_events: list[dict], home_team: str, away_team: str) -> 
 
 
 def extract_book_prices(odds_event: dict) -> dict:
-    """Renvoie {'pinnacle': {'TeamName': cote, ...}, 'betclic': {...}, 'unibet': {...}} si trouvés."""
     prices = {}
     for bookmaker in odds_event.get("bookmakers", []):
         key = bookmaker.get("key")
@@ -960,25 +696,16 @@ def extract_book_prices(odds_event: dict) -> dict:
 
 
 def devig_two_way(price_a: float, price_b: float) -> tuple[float, float]:
-    """Retire la marge du bookmaker pour obtenir la vraie proba de marché implicite."""
     imp_a = 1 / price_a
     imp_b = 1 / price_b
     total = imp_a + imp_b
     return imp_a / total, imp_b / total
 
 
-# ---------------------------------------------------------------------------
-# 7. Assemblage : modèle, value, message
-# ---------------------------------------------------------------------------
-
-DETAIL_THRESHOLD = 0.02  # 2 points -- en dessous, un composant est jugé négligeable dans l'explication en texte
+DETAIL_THRESHOLD = 0.02
 
 
 def format_detail_explanation(model: dict) -> str:
-    """Traduit le détail numérique du modèle en une explication en langage
-    courant : d'où vient la proba, quels facteurs du soir pèsent vraiment,
-    lesquels sont négligeables. Remplace l'ancienne ligne de chiffres bruts.
-    """
     home_team = model["home_name"]
     away_team = model["away_name"]
     baseline_pct = model["baseline"] * 100
@@ -1001,14 +728,14 @@ def format_detail_explanation(model: dict) -> str:
         ("l'historique (H2H)", model["h2h_adj"]),
     ]
     significant = [(label, val) for label, val in components if abs(val) >= DETAIL_THRESHOLD]
-    base_sentence = base_sentence[0].upper() + base_sentence[1:]  # 1ère lettre seulement -- .capitalize() écraserait la casse des noms d'équipes
+    base_sentence = base_sentence[0].upper() + base_sentence[1:]
 
     if not significant:
         return f"{base_sentence}. Aucun facteur du soir ne change vraiment la donne — tous les ajustements sont mineurs."
 
     significant.sort(key=lambda x: abs(x[1]), reverse=True)
     parts = []
-    for label, val in significant[:2]:  # les 2 plus significatifs seulement, pour rester court
+    for label, val in significant[:2]:
         direction = home_team if val > 0 else away_team
         parts.append(f"{label} favorise {direction} ({val*100:+.1f} pts)")
 
@@ -1016,37 +743,18 @@ def format_detail_explanation(model: dict) -> str:
 
 
 def compute_fair_odds(prob: float | None) -> float | None:
-    """La cote à laquelle notre modèle serait à EV nul -- l'inverse de la
-    probabilité. C'est le seuil : la value apparaît dès que la cote réelle
-    dépasse cette cote juste.
-    """
     if not prob or prob <= 0:
         return None
     return 1 / prob
 
 
 def compute_ev_pct(prob: float | None, price: float | None) -> float | None:
-    """Expected Value en % : gain/perte moyen espéré par unité misée à ce
-    prix précis, SI la probabilité du modèle est juste. (proba × cote) - 1.
-    """
     if not prob or not price:
         return None
     return (prob * price - 1) * 100
 
 
 def format_selection_block(model: dict, value: dict, units: float, reasons: list[str]) -> str:
-    """Une sélection unique et nette -- plus de choix entre favori et
-    value à interpréter. Cote juste (fair odds) du modèle vs cote réelle
-    jouable -> EV% -> décision.
-
-    Depuis le 6 août, toute value confirmée vs Pinnacle reçoit une mise
-    (0.5u minimum) et reste suivie dans la bankroll -- y compris quand
-    l'EV au prix réellement jouable est faible/négatif ou inconnu (mise
-    réduite à 0.5u dans ce cas, voir stake_units). C'est un choix
-    volontaire : si l'EV réel est négatif, ce sous-groupe perdra un peu
-    d'argent en moyenne dans le suivi -- c'est la définition même d'un EV
-    négatif, pas une question d'opinion.
-    """
     edge = value.get("best_edge")
     stars = confidence_stars(compute_confidence_stars_score(model, value.get("best_side") or "home"))
 
@@ -1088,16 +796,10 @@ def format_selection_block(model: dict, value: dict, units: float, reasons: list
     return "".join(lines)
 
 
-PLAYABLE_BOOKS_PRIORITY = ["betclic", "unibet"]  # ordre de préférence pour le prix "réellement jouable"
+PLAYABLE_BOOKS_PRIORITY = ["betclic", "unibet"]
 
 
 def evaluate_value(model: dict, odds_events: list[dict]) -> dict:
-    """Rassemble tout ce qui concerne les cotes et la value pour un match :
-    prix jouable (Betclic en priorité, Unibet en secours puisque Betclic ne
-    couvre pas le MLB sur cette API), proba de marché Pinnacle dévigorée,
-    edge, et si les deux books sont d'accord entre eux. Utilisé à la fois
-    par le message par match et par le résumé de fin de soirée.
-    """
     home_team = model["home_name"]
     away_team = model["away_name"]
     p_home = model["p_home"]
@@ -1167,31 +869,10 @@ def evaluate_value(model: dict, odds_events: list[dict]) -> dict:
     return result
 
 
-MIN_REAL_EV_PCT = 2.0  # % minimum d'EV au prix RÉELLEMENT jouable -- pas juste vs Pinnacle
+MIN_REAL_EV_PCT = 2.0
 
 
 def stake_units(value: dict, model: dict) -> tuple[float, list[str]]:
-    """Détermine la mise en UNITÉS (u), pilotée par compute_confidence_score
-    (somme pondérée de plusieurs composantes -- voir CONFIDENCE_WEIGHTS),
-    pas par le titulaire seul :
-    - books_agree et line-up réel : quasi aucune différence de réussite
-      observée (45-46% avec ou sans) -- retirés comme critères de mise.
-    - score combiné < CONFIDENCE_SCORE_MIN ("signal neutre") : zone
-      historiquement la moins fiable (37% de réussite sur le titulaire
-      seul, -28.97u/43 picks) -- mise plafonnée à 0.5u même si l'edge
-      global paraît intéressant (il vient d'ailleurs).
-    - score combiné >= CONFIDENCE_SCORE_STRONG : la zone la plus rentable
-      observée -- c'est elle qui ouvre la porte au 2u, pas l'edge seul.
-
-    La mise reflète la confiance dans le MODÈLE (edge vs Pinnacle + signal
-    titulaire), pas la disponibilité d'un prix chez tel ou tel book -- ce
-    sont deux choses différentes. Si le prix réellement jouable est moins
-    bon que la cote juste, c'est signalé en information dans le message
-    (voir format_selection_block), mais ça ne réduit plus la mise -- sinon
-    ça fausserait l'analyse des paliers de confiance qu'on vient de calibrer.
-
-    Renvoie les unités et les raisons, pour le débrief.
-    """
     edge = value["best_edge"]
     if edge is None or edge < VALUE_TIER_MODEREE:
         return 0.0, ["pas de value nette"]
@@ -1237,7 +918,6 @@ def stake_units(value: dict, model: dict) -> tuple[float, list[str]]:
 
 
 def compute_model_probability(game: dict, split_records: dict) -> dict:
-    """Calcule la proba modèle + le détail de chaque brique, pour le débrief."""
     home_id = game["teams"]["home"]["team"]["id"]
     away_id = game["teams"]["away"]["team"]["id"]
     home_name = game["teams"]["home"]["team"]["name"]
@@ -1267,11 +947,6 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
     pitcher_quality_adj = starter_edge(home_fip) - starter_edge(away_fip)
     adversity_adj = opposing_offense_penalty(away_ops) - opposing_offense_penalty(home_ops)
 
-    # Ajustement fin par arsenal de lancers -- seulement possible si le
-    # line-up réel est publié (on a besoin des vrais batteurs, pas d'une
-    # moyenne d'équipe). Enveloppé en try/except par précaution : c'est la
-    # brique la plus expérimentale du modèle, une erreur ici ne doit jamais
-    # faire échouer le calcul du reste.
     arsenal_adj = 0.0
     try:
         home_batter_ids = _extract_lineup_player_ids(game, "home")
@@ -1287,8 +962,6 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
     except Exception as exc:
         print(f"  (ajustement arsenal indisponible pour ce match : {exc})")
 
-    # Vague 1 : splits lanceur supplémentaires -- chacun enveloppé séparément
-    # en try/except, pour qu'un souci sur l'un n'affecte jamais les autres.
     home_road_adj = 0.0
     try:
         home_split = get_pitcher_split_stat(home_pitcher_id, CURRENT_SEASON, SIT_CODE_HOME) if home_pitcher_id else None
@@ -1313,7 +986,6 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
         platoon_adj = platoon_edge(away_ops_vs_home_hand, away_ops_season) - platoon_edge(
             home_ops_vs_away_hand, home_ops_season
         )
-        # Style de jeu : le titulaire home affronte le style de la ligne away, et vice versa
         playstyle_adj = playstyle_edge(away_offense) - playstyle_edge(home_offense)
     except Exception as exc:
         print(f"  (platoon split / style de jeu indisponible : {exc})")
@@ -1324,24 +996,14 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
         away_batter_ids_bvp = _extract_lineup_player_ids(game, "away")
         home_bvp_edge = batters_vs_pitcher_edge(away_batter_ids_bvp, home_pitcher_id, CURRENT_SEASON, LEAGUE_AVG_OPS)
         away_bvp_edge = batters_vs_pitcher_edge(home_batter_ids_bvp, away_pitcher_id, CURRENT_SEASON, LEAGUE_AVG_OPS)
-        # Edge positif pour le batteur = mauvais pour le lanceur -> on inverse le signe
         batters_faced_adj = -home_bvp_edge + away_bvp_edge
     except Exception as exc:
         print(f"  (historique batteurs vs titulaire indisponible : {exc})")
 
-    # jour/nuit, vs-cette-équipe et fatigue bullpen retirés le 5 août après
-    # analyse sur 131 picks détaillés : les deux premiers étaient les pires
-    # facteurs du modèle (27% et 17% de réussite quand dominants), le
-    # troisième était toujours exactement 0.0 (mécanisme API non fonctionnel).
-    # Clés gardées à 0.0 pour rester compatibles avec les anciens logs.
     daynight_adj = 0.0
     vs_team_adj = 0.0
     bullpen_adj = 0.0
 
-    # Météo : récupérée et loggée pour un futur marché Total, mais PAS
-    # pondérée dans le moneyline -- son effet réel joue sur le nombre de
-    # runs marqués, pas directement sur qui gagne, et l'estimer sans
-    # profil de puissance des deux équipes serait trop approximatif.
     weather = None
     try:
         stadium = get_stadium_info(home_name)
@@ -1363,7 +1025,7 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
         + playstyle_adj + batters_faced_adj
         + rest_adj + bullpen_adj + h2h_adj
     )
-    p_home = min(max(p_home, 0.03), 0.97)  # on évite les probas absurdes à 0% ou 100%
+    p_home = min(max(p_home, 0.03), 0.97)
 
     return {
         "p_home": p_home,
@@ -1398,11 +1060,6 @@ def compute_model_probability(game: dict, split_records: dict) -> dict:
 
 
 def pitcher_confirmation_status(model: dict) -> str:
-    """Indique si les DEUX titulaires sont confirmés (nom annoncé + stats
-    trouvées) ou si l'un des deux repose sur une donnée incomplète -- utile
-    pour un lancement proche des matchs, quand on veut être sûr que le
-    modèle tourne sur du solide plutôt que sur un repli.
-    """
     home_ok = model["home_pitcher_name"] != "Titulaire non encore annoncé" and model["home_fip"] is not None
     away_ok = model["away_pitcher_name"] != "Titulaire non encore annoncé" and model["away_fip"] is not None
 
@@ -1421,23 +1078,14 @@ OFFENSE_CONTEXT_THRESHOLD = 0.02
 
 
 def format_offense_context(model: dict) -> str:
-    """Ligne dédiée à l'attaque adverse (adversité OPS + arsenal), séparée
-    du duel titulaires -- pour que le contexte batteurs ne soit jamais
-    éclipsé par un gros ajustement titulaire par ailleurs.
-    """
     combined = model["adversity_adj"] + model["arsenal_adj"]
     if abs(combined) < OFFENSE_CONTEXT_THRESHOLD:
         return "⚔️ Attaques : rien de spécial à signaler ce soir."
-
     favored = model["home_name"] if combined > 0 else model["away_name"]
     return f"⚔️ Attaques : l'avantage penche pour {favored} face à l'arsenal adverse ({combined*100:+.1f} pts)."
 
 
 def format_weather_line(model: dict) -> str:
-    """Affiche la météo si disponible (stade sans toit). Pas encore
-    pondérée dans le calcul du moneyline -- collectée en vue d'un futur
-    marché Total, où son effet est bien plus direct.
-    """
     weather = model.get("weather")
     if weather is None:
         return "🌤 Météo : non disponible ou stade avec toit"
@@ -1503,9 +1151,6 @@ def format_value_block(model: dict, value: dict) -> str:
 
 
 def _short_tier_label(reasons: list[str]) -> str:
-    """Étiquette courte extraite des raisons de mise, pour le récap --
-    évite de répéter la phrase complète sur chaque ligne.
-    """
     if not reasons:
         return ""
     text = reasons[0]
@@ -1521,11 +1166,6 @@ def _short_tier_label(reasons: list[str]) -> str:
 
 
 def build_recap_entry(model: dict, value: dict, units: float, reasons: list[str]) -> dict | None:
-    """Construit une entrée de récap pour UN match -- équipe, edge, cote
-    juste (modèle) et cote Pinnacle reconstruite (à partir de p_home et
-    best_edge, puisque la proba Pinnacle brute n'est pas sauvegardée
-    telle quelle). None si Pinnacle n'a pas de cotes pour ce match.
-    """
     side = value.get("best_side")
     edge = value.get("best_edge")
     if side is None or edge is None:
@@ -1547,10 +1187,6 @@ def build_recap_entry(model: dict, value: dict, units: float, reasons: list[str]
 
 
 def format_full_recap(entries: list[dict]) -> str:
-    """Récap complet de fin de soirée -- TOUS les matchs (pas juste un
-    top N), groupés par palier de confiance (2u/1u/0.5u/aucune sélection).
-    Remplace l'ancien "top 5" du 6 août.
-    """
     if not entries:
         return "📋 <b>Récap complet</b>\n\nAucun match avec cotes Pinnacle disponibles ce soir.\n"
 
@@ -1590,15 +1226,6 @@ def format_full_recap(entries: list[dict]) -> str:
 
 
 def chunk_message(text: str, limit: int = 3800) -> list[str]:
-    """Découpe un message trop long en plusieurs morceaux -- UNIQUEMENT
-    entre deux lignes complètes, jamais au milieu d'une ligne. Bug corrigé
-    le 11 août : l'ancien découpage au nombre de caractères pouvait
-    trancher en plein milieu d'une balise <b>/<i>, laissant un morceau
-    avec une balise ouverte mais jamais fermée -- Telegram refuse alors
-    tout le message ("Unsupported start tag"). Comme chaque balise
-    s'ouvre et se ferme toujours dans la même ligne dans ce bot, découper
-    seulement entre les lignes élimine le problème.
-    """
     if len(text) <= limit:
         return [text]
 
@@ -1619,12 +1246,6 @@ def chunk_message(text: str, limit: int = 3800) -> list[str]:
 
 
 def save_predictions_log(date_str: str, log_entries: list[dict], collection_errors: list[dict]) -> None:
-    """Sauvegarde les prédictions du soir dans data/YYYY-MM-DD.json, pour
-    que debrief.py puisse les comparer aux résultats réels le lendemain,
-    sans aucun copier-coller manuel. Garde aussi la trace des matchs qui
-    ont échoué à la collecte (et pourquoi), pour ne plus jamais se
-    demander pourquoi le compte de matchs analysés est plus bas que prévu.
-    """
     DATA_DIR.mkdir(exist_ok=True)
     path = DATA_DIR / f"{date_str}.json"
     with open(path, "w", encoding="utf-8") as f:
@@ -1664,18 +1285,13 @@ def main() -> None:
         home = game["teams"]["home"]["team"]["name"]
         away = game["teams"]["away"]["team"]["name"]
 
-        # Un match déjà commencé n'a plus de cotes utilisables (le marché
-        # ferme au coup d'envoi) -- le retraiter donnerait "aucune
-        # sélection" et ÉCRASERAIT, dans le log fusionné par match, une
-        # bonne sélection déjà sauvegardée par une exécution plus tôt dans
-        # la journée. On le laisse simplement tel qu'il était.
         try:
             game_start = datetime.datetime.fromisoformat(game.get("gameDate", "").replace("Z", "+00:00"))
             if game_start <= now_utc:
                 matchs_deja_commences += 1
                 continue
         except Exception:
-            pass  # date illisible -- on traite le match normalement plutôt que de le sauter à tort
+            pass
 
         try:
             model = compute_model_probability(game, split_records)
@@ -1684,9 +1300,12 @@ def main() -> None:
             value_text = format_value_block(model, value)
 
             # Section Total -- entièrement séparée, n'affecte jamais les
-            # étoiles, la sélection moneyline, ou sa mise. Enveloppée dans
-            # son propre try/except : un souci ici ne doit jamais faire
-            # perdre le reste du message (déjà validé) ni le match entier.
+            # étoiles, la sélection moneyline, ou sa mise. Valeurs par
+            # défaut définies AVANT le try (corrigé le 19 août) : sans ça,
+            # si le bloc échouait, ces variables n'existaient pas du tout
+            # au moment de construire log_entry plus bas.
+            totals_value: dict = {}
+            totals_units, totals_reason = 0.0, "indisponible (erreur de calcul)"
             try:
                 home_id = game["teams"]["home"]["team"]["id"]
                 away_id = game["teams"]["away"]["team"]["id"]
@@ -1751,6 +1370,17 @@ def main() -> None:
                     "bullpen_adj": model["bullpen_adj"],
                     "h2h_adj": model["h2h_adj"],
                 },
+                # Total (over/under) -- ENTIÈREMENT séparé du moneyline
+                # ci-dessus, réglé et suivi indépendamment par debrief.py
+                # (bankroll_totals.json, jamais mélangée à bankroll.json).
+                "totals": {
+                    "line": totals_value.get("line"),
+                    "side": totals_value.get("best_side"),
+                    "units": totals_units,
+                    "price": totals_value.get("playable_price"),
+                    "reason": totals_reason,
+                    "expected_total": totals_value.get("expected_total"),
+                },
             }
 
             units, reasons = stake_units(value, model)
@@ -1761,10 +1391,6 @@ def main() -> None:
 
             if units > 0:
                 side = value["best_side"]
-                # Prix réellement jouable en priorité (Betclic, puis Unibet en
-                # secours) ; à défaut, le prix "juste" implicite de Pinnacle --
-                # utile pour le suivi du modèle, mais pas un prix réellement
-                # disponible si aucun des deux books ne liste ce match.
                 if side == "home":
                     price = value.get("playable_home_price") or (
                         1 / value["market_home"] if value.get("market_home") else None
