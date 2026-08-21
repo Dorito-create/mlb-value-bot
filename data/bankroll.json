@@ -1,5 +1,5 @@
 {
-  "balance": 73.91999999999992,
+  "balance": 72.35999999999993,
   "history": [
     {
       "date": "2026-07-21",
@@ -2910,6 +2910,86 @@
       "won": true,
       "pnl": 0.47,
       "balance_after": 73.91999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824474,
+      "team": "St. Louis Cardinals",
+      "units": 1.0,
+      "price": 1.87,
+      "won": true,
+      "pnl": 0.8700000000000001,
+      "balance_after": 74.78999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824395,
+      "team": "San Francisco Giants",
+      "units": 0.5,
+      "price": 2.7,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 74.28999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 822934,
+      "team": "Tampa Bay Rays",
+      "units": 0.5,
+      "price": 1.57,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 73.78999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824074,
+      "team": "Athletics",
+      "units": 1.0,
+      "price": 2.2,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 72.78999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 823747,
+      "team": "Milwaukee Brewers",
+      "units": 1.0,
+      "price": 1.78,
+      "won": true,
+      "pnl": 0.78,
+      "balance_after": 73.56999999999992
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824802,
+      "team": "New York Yankees",
+      "units": 1.0,
+      "price": 1.79,
+      "won": true,
+      "pnl": 0.79,
+      "balance_after": 74.35999999999993
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 822861,
+      "team": "Washington Nationals",
+      "units": 1.0,
+      "price": 2.38,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 73.35999999999993
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824153,
+      "team": "Houston Astros",
+      "units": 1.0,
+      "price": 1.5,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 72.35999999999993
     }
   ]
 }

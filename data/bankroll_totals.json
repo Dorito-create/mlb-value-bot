@@ -1,5 +1,5 @@
 {
-  "balance": 101.23000000000002,
+  "balance": 101.39500000000001,
   "history": [
     {
       "date": "2026-08-19",
@@ -130,6 +130,84 @@
       "won": true,
       "pnl": 0.39,
       "balance_after": 101.23000000000002
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824474,
+      "matchup": "St. Louis Cardinals @ Cincinnati Reds",
+      "side": "under",
+      "line": 9.0,
+      "real_total": 19,
+      "units": 0.5,
+      "price": 1.78,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 100.73000000000002
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824395,
+      "matchup": "San Francisco Giants @ Cleveland Guardians",
+      "side": "under",
+      "line": 7.0,
+      "real_total": 7,
+      "units": 0.5,
+      "price": 1.73,
+      "won": null,
+      "pnl": 0.0,
+      "balance_after": 100.73000000000002
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 822934,
+      "matchup": "Toronto Blue Jays @ Tampa Bay Rays",
+      "side": "under",
+      "line": 7.0,
+      "real_total": 6,
+      "units": 1.0,
+      "price": 1.85,
+      "won": true,
+      "pnl": 0.8500000000000001,
+      "balance_after": 101.58000000000001
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824589,
+      "matchup": "Atlanta Braves @ Chicago White Sox",
+      "side": "under",
+      "line": 8.5,
+      "real_total": 2,
+      "units": 0.5,
+      "price": 1.81,
+      "won": true,
+      "pnl": 0.405,
+      "balance_after": 101.98500000000001
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 822861,
+      "matchup": "Washington Nationals @ Texas Rangers",
+      "side": "over",
+      "line": 7.5,
+      "real_total": 2,
+      "units": 1.0,
+      "price": 1.78,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 100.98500000000001
+    },
+    {
+      "date": "2026-08-20",
+      "game_pk": 824153,
+      "matchup": "Los Angeles Angels @ Houston Astros",
+      "side": "over",
+      "line": 8.5,
+      "real_total": 21,
+      "units": 0.5,
+      "price": 1.82,
+      "won": true,
+      "pnl": 0.41000000000000003,
+      "balance_after": 101.39500000000001
     }
   ]
 }
