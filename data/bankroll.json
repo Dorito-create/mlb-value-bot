@@ -1,5 +1,5 @@
 {
-  "balance": 72.35999999999993,
+  "balance": 69.90999999999994,
   "history": [
     {
       "date": "2026-07-21",
@@ -2990,6 +2990,106 @@
       "won": false,
       "pnl": -1.0,
       "balance_after": 72.35999999999993
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 823420,
+      "team": "St. Louis Cardinals",
+      "units": 1.0,
+      "price": 3.2,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 71.35999999999993
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 823510,
+      "team": "Toronto Blue Jays",
+      "units": 1.0,
+      "price": 2.7,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 70.35999999999993
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 824800,
+      "team": "Tampa Bay Rays",
+      "units": 1.0,
+      "price": 2.12,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 69.35999999999993
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 824559,
+      "team": "Chicago White Sox",
+      "units": 1.0,
+      "price": 1.68,
+      "won": true,
+      "pnl": 0.6799999999999999,
+      "balance_after": 70.03999999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 824072,
+      "team": "Detroit Tigers",
+      "units": 1.0,
+      "price": 1.83,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 69.03999999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 824152,
+      "team": "Houston Astros",
+      "units": 0.5,
+      "price": 1.55,
+      "won": true,
+      "pnl": 0.275,
+      "balance_after": 69.31499999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 822857,
+      "team": "Texas Rangers",
+      "units": 1.0,
+      "price": 1.67,
+      "won": true,
+      "pnl": 0.6699999999999999,
+      "balance_after": 69.98499999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 824317,
+      "team": "Cleveland Guardians",
+      "units": 0.5,
+      "price": 1.57,
+      "won": true,
+      "pnl": 0.28500000000000003,
+      "balance_after": 70.26999999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 825045,
+      "team": "Arizona Diamondbacks",
+      "units": 1.0,
+      "price": 1.64,
+      "won": true,
+      "pnl": 0.6399999999999999,
+      "balance_after": 70.90999999999994
+    },
+    {
+      "date": "2026-08-21",
+      "game_pk": 823101,
+      "team": "Chicago Cubs",
+      "units": 1.0,
+      "price": 1.92,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 69.90999999999994
     }
   ]
 }
