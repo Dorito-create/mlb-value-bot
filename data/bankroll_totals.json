@@ -1,5 +1,5 @@
 {
-  "balance": 100.59000000000002,
+  "balance": 100.46000000000002,
   "history": [
     {
       "date": "2026-08-19",
@@ -559,6 +559,123 @@
       "won": true,
       "pnl": 0.8300000000000001,
       "balance_after": 100.59000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 823421,
+      "matchup": "St. Louis Cardinals @ Philadelphia Phillies",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 10,
+      "units": 1.0,
+      "price": 1.77,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 99.59000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 823507,
+      "matchup": "Toronto Blue Jays @ New York Yankees",
+      "side": "under",
+      "line": 7.5,
+      "real_total": 11,
+      "units": 0.5,
+      "price": 1.81,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 99.09000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 824071,
+      "matchup": "Detroit Tigers @ Kansas City Royals",
+      "side": "under",
+      "line": 8.5,
+      "real_total": 18,
+      "units": 0.5,
+      "price": 1.87,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 98.59000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 824150,
+      "matchup": "Athletics @ Houston Astros",
+      "side": "over",
+      "line": 8.5,
+      "real_total": 13,
+      "units": 0.5,
+      "price": 1.71,
+      "won": true,
+      "pnl": 0.355,
+      "balance_after": 98.94500000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 824558,
+      "matchup": "New York Mets @ Chicago White Sox",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 3,
+      "units": 1.0,
+      "price": 1.8,
+      "won": true,
+      "pnl": 0.8,
+      "balance_after": 99.74500000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 824315,
+      "matchup": "Cleveland Guardians @ Colorado Rockies",
+      "side": "under",
+      "line": 11.0,
+      "real_total": 9,
+      "units": 0.5,
+      "price": 1.85,
+      "won": true,
+      "pnl": 0.42500000000000004,
+      "balance_after": 100.17000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 823258,
+      "matchup": "Minnesota Twins @ San Diego Padres",
+      "side": "over",
+      "line": 9.0,
+      "real_total": 9,
+      "units": 1.0,
+      "price": null,
+      "won": null,
+      "pnl": 0.0,
+      "balance_after": 100.17000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 825043,
+      "matchup": "Cincinnati Reds @ Arizona Diamondbacks",
+      "side": "under",
+      "line": 9.0,
+      "real_total": 8,
+      "units": 1.0,
+      "price": 1.79,
+      "won": true,
+      "pnl": 0.79,
+      "balance_after": 100.96000000000002
+    },
+    {
+      "date": "2026-08-23",
+      "game_pk": 823745,
+      "matchup": "Atlanta Braves @ Milwaukee Brewers",
+      "side": "over",
+      "line": 7.5,
+      "real_total": 6,
+      "units": 0.5,
+      "price": 1.87,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 100.46000000000002
     }
   ]
 }
