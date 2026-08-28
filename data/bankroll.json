@@ -1,5 +1,5 @@
 {
-  "balance": 62.97499999999993,
+  "balance": 63.06499999999993,
   "history": [
     {
       "date": "2026-07-21",
@@ -3580,6 +3580,36 @@
       "won": false,
       "pnl": -0.5,
       "balance_after": 62.97499999999993
+    },
+    {
+      "date": "2026-08-27",
+      "game_pk": 823581,
+      "team": "Milwaukee Brewers",
+      "units": 0.5,
+      "price": 1.48,
+      "won": true,
+      "pnl": 0.24,
+      "balance_after": 63.21499999999993
+    },
+    {
+      "date": "2026-08-27",
+      "game_pk": 824879,
+      "team": "Atlanta Braves",
+      "units": 1.0,
+      "price": 1.85,
+      "won": true,
+      "pnl": 0.8500000000000001,
+      "balance_after": 64.06499999999993
+    },
+    {
+      "date": "2026-08-27",
+      "game_pk": 823179,
+      "team": "Arizona Diamondbacks",
+      "units": 1.0,
+      "price": 1.91,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 63.06499999999993
     }
   ]
 }
