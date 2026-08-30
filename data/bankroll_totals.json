@@ -1,5 +1,5 @@
 {
-  "balance": 102.56500000000001,
+  "balance": 101.44500000000001,
   "history": [
     {
       "date": "2026-08-19",
@@ -1339,6 +1339,97 @@
       "won": true,
       "pnl": 0.73,
       "balance_after": 102.56500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 822690,
+      "matchup": "Miami Marlins @ Washington Nationals",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 9,
+      "units": 0.5,
+      "price": 1.76,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 102.06500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 824392,
+      "matchup": "Kansas City Royals @ Cleveland Guardians",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 11,
+      "units": 0.5,
+      "price": null,
+      "won": false,
+      "pnl": null,
+      "balance_after": 102.06500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 823582,
+      "matchup": "Houston Astros @ New York Mets",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 8,
+      "units": 0.5,
+      "price": 1.76,
+      "won": null,
+      "pnl": 0.0,
+      "balance_after": 102.06500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 822936,
+      "matchup": "San Diego Padres @ Tampa Bay Rays",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 13,
+      "units": 0.5,
+      "price": 1.74,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 101.56500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 824874,
+      "matchup": "Colorado Rockies @ Atlanta Braves",
+      "side": "under",
+      "line": 8.5,
+      "real_total": 3,
+      "units": 1.0,
+      "price": 1.88,
+      "won": true,
+      "pnl": 0.8799999999999999,
+      "balance_after": 102.44500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 823741,
+      "matchup": "Texas Rangers @ Milwaukee Brewers",
+      "side": "under",
+      "line": 8.0,
+      "real_total": 8,
+      "units": 1.0,
+      "price": 1.81,
+      "won": null,
+      "pnl": 0.0,
+      "balance_after": 102.44500000000001
+    },
+    {
+      "date": "2026-08-29",
+      "game_pk": 823986,
+      "matchup": "Philadelphia Phillies @ Los Angeles Angels",
+      "side": "over",
+      "line": 8.0,
+      "real_total": 6,
+      "units": 1.0,
+      "price": 1.73,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 101.44500000000001
     }
   ]
 }
