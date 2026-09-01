@@ -1,0 +1,610 @@
+{
+  "date": "2026-09-01",
+  "games": [
+    {
+      "game_pk": 824472,
+      "home_team": "Cincinnati Reds",
+      "away_team": "San Diego Padres",
+      "p_home": 0.3772246634071827,
+      "best_side": "away",
+      "best_edge": 0.07113805699583986,
+      "stake_units": 1.0,
+      "stake_price": 1.71,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.4421944578438134,
+        "form_adj": -0.006960000000000006,
+        "pitcher_quality_adj": -0.07929999999999998,
+        "adversity_adj": -0.0020622222222222227,
+        "arsenal_adj": 0.0023276701322548442,
+        "home_road_adj": 0.027000000000000003,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.0007999999999999897,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.008420242346663203,
+        "batters_faced_adj": 0.009978333333333332,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.008333333333333333
+      },
+      "totals": {
+        "line": 9.0,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.79,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 6.864682815734992
+      }
+    },
+    {
+      "game_pk": 823340,
+      "home_team": "Pittsburgh Pirates",
+      "away_team": "San Francisco Giants",
+      "p_home": 0.6269444668137601,
+      "best_side": "home",
+      "best_edge": 0.02206641803327236,
+      "stake_units": 0.0,
+      "stake_price": null,
+      "stake_reasons": [],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5733573972393501,
+        "form_adj": 0.00876,
+        "pitcher_quality_adj": 0.02599999999999999,
+        "adversity_adj": 0.004408888888888889,
+        "arsenal_adj": -0.00010427876215851335,
+        "home_road_adj": 0.010000000000000009,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.00030000000000000035,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.001791983257203398,
+        "batters_faced_adj": -0.008402857142857142,
+        "rest_adj": 0.015,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.0041666666666666675
+      },
+      "totals": {
+        "line": 7.5,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.76,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 5.074637909937886
+      }
+    },
+    {
+      "game_pk": 822929,
+      "home_team": "Tampa Bay Rays",
+      "away_team": "New York Mets",
+      "p_home": 0.6990693096028117,
+      "best_side": "home",
+      "best_edge": 0.14743203000583427,
+      "stake_units": 1.0,
+      "stake_price": 1.7,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.6470305705962383,
+        "form_adj": 0.017999999999999995,
+        "pitcher_quality_adj": 0.0026000000000000016,
+        "adversity_adj": 0.005359999999999997,
+        "arsenal_adj": -8.094006502889486e-05,
+        "home_road_adj": 0.05050000000000004,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.005199999999999994,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.011586345738268904,
+        "batters_faced_adj": -0.03072666666666666,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.0
+      },
+      "totals": {
+        "line": 8.0,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.73,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 6.537215310836065
+      }
+    },
+    {
+      "game_pk": 824391,
+      "home_team": "Cleveland Guardians",
+      "away_team": "Toronto Blue Jays",
+      "p_home": 0.4810697799146158,
+      "best_side": "away",
+      "best_edge": 0.13579768996490227,
+      "stake_units": 1.0,
+      "stake_price": 2.48,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5109987681379684,
+        "form_adj": 0.001320000000000001,
+        "pitcher_quality_adj": -0.059150000000000015,
+        "adversity_adj": -5.333333333333633e-05,
+        "arsenal_adj": 0.0006139906673631539,
+        "home_road_adj": 0.0355,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.001100000000000012,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.004787021109284327,
+        "batters_faced_adj": -0.0076799999999999985,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.0041666666666666675
+      },
+      "totals": {
+        "line": 8.0,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.78,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 3.5504209961060478
+      }
+    },
+    {
+      "game_pk": 824716,
+      "home_team": "Boston Red Sox",
+      "away_team": "Seattle Mariners",
+      "p_home": 0.03,
+      "best_side": "away",
+      "best_edge": 0.4928426395939086,
+      "stake_units": 0.5,
+      "stake_price": 2.0,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5785138422885493,
+        "form_adj": 0.00948,
+        "pitcher_quality_adj": -0.73645,
+        "adversity_adj": 0.0030111111111111024,
+        "arsenal_adj": 0.0030458506330688475,
+        "home_road_adj": 0.0,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.003199999999999992,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.002865912518618452,
+        "batters_faced_adj": -0.011899999999999999,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.008333333333333333
+      },
+      "totals": {
+        "line": 7.0,
+        "side": "over",
+        "units": 0.5,
+        "price": 1.73,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 19.02353834782609
+      }
+    },
+    {
+      "game_pk": 822687,
+      "home_team": "Washington Nationals",
+      "away_team": "Atlanta Braves",
+      "p_home": 0.23308148179332408,
+      "best_side": "away",
+      "best_edge": 0.19085866783261107,
+      "stake_units": 0.5,
+      "stake_price": 1.68,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.37832672538638684,
+        "form_adj": -0.014759999999999999,
+        "pitcher_quality_adj": -0.04810000000000002,
+        "adversity_adj": -0.0020399999999999975,
+        "arsenal_adj": 0.0026365461935969584,
+        "home_road_adj": -0.071,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.0017000000000000014,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.00803821021334037,
+        "batters_faced_adj": 0.0025133333333333344,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.020833333333333336
+      },
+      "totals": {
+        "line": 10.0,
+        "side": "over",
+        "units": 1.0,
+        "price": 1.82,
+        "reason": "edge net vs Pinnacle sur le Total",
+        "expected_total": 10.850931889086066
+      }
+    },
+    {
+      "game_pk": 823661,
+      "home_team": "Minnesota Twins",
+      "away_team": "Detroit Tigers",
+      "p_home": 0.6107941143125414,
+      "best_side": "home",
+      "best_edge": 0.0993437326331521,
+      "stake_units": 1.0,
+      "stake_price": 1.88,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.5180635838150289,
+        "form_adj": 0.0021599999999999953,
+        "pitcher_quality_adj": 0.0364,
+        "adversity_adj": 0.010533333333333346,
+        "arsenal_adj": 0.00199261498536685,
+        "home_road_adj": 0.0069999999999999845,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.0005000000000000004,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.0046645821788122285,
+        "batters_faced_adj": 0.012813333333333335,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.016666666666666666
+      },
+      "totals": {
+        "line": 8.5,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.83,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 3.430157359266143
+      }
+    },
+    {
+      "game_pk": 824070,
+      "home_team": "Kansas City Royals",
+      "away_team": "Miami Marlins",
+      "p_home": 0.4245284528250226,
+      "best_side": "away",
+      "best_edge": 0.08946645811645315,
+      "stake_units": 1.0,
+      "stake_price": 2.0,
+      "stake_reasons": [
+        "score fort mais porté par un seul facteur -- mise prudente en attendant confirmation d'un second (pas de 2u sur un facteur isolé, même solide)",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.449,
+        "form_adj": -0.006119999999999999,
+        "pitcher_quality_adj": 0.05199999999999999,
+        "adversity_adj": -0.0010755555555555585,
+        "arsenal_adj": -0.0009193279413966138,
+        "home_road_adj": -0.06500000000000002,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.0010000000000000009,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.0029566636780252106,
+        "batters_faced_adj": -0.0144,
+        "rest_adj": 0.015,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.0
+      },
+      "totals": {
+        "line": 10.0,
+        "side": "under",
+        "units": 0.5,
+        "price": null,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 3.1269257487922704
+      }
+    },
+    {
+      "game_pk": 824633,
+      "home_team": "Chicago Cubs",
+      "away_team": "Milwaukee Brewers",
+      "p_home": 0.3605071639331945,
+      "best_side": "away",
+      "best_edge": 0.17248775992467347,
+      "stake_units": 0.5,
+      "stake_price": 2.1413043478260865,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": null,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.4474140064340508,
+        "form_adj": -0.006120000000000005,
+        "pitcher_quality_adj": -0.01495000000000003,
+        "adversity_adj": 0.0024288888888888845,
+        "arsenal_adj": 0.0030774586482096274,
+        "home_road_adj": -0.07250000000000001,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.008299999999999997,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.0025005233712881297,
+        "batters_faced_adj": -0.00047599999999999856,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.004166666666666668
+      },
+      "totals": {
+        "line": 10.0,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.74,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 7.910303478260868
+      }
+    },
+    {
+      "game_pk": 822854,
+      "home_team": "Texas Rangers",
+      "away_team": "Athletics",
+      "p_home": 0.700841432016798,
+      "best_side": "home",
+      "best_edge": 0.03417476535013142,
+      "stake_units": 1.0,
+      "stake_price": 1.43,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.6093551856429683,
+        "form_adj": 0.013079999999999998,
+        "pitcher_quality_adj": -0.02405000000000001,
+        "adversity_adj": 0.006479999999999997,
+        "arsenal_adj": -0.0010072054198565854,
+        "home_road_adj": 0.07050000000000001,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.0039000000000000033,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.0005127386825042549,
+        "batters_faced_adj": 0.027262857142857144,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.0041666666666666675
+      },
+      "totals": {
+        "line": 7.5,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.77,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 5.528778467908904
+      }
+    },
+    {
+      "game_pk": 824148,
+      "home_team": "Houston Astros",
+      "away_team": "Chicago White Sox",
+      "p_home": 0.25900800451470113,
+      "best_side": "away",
+      "best_edge": 0.23588995466897222,
+      "stake_units": 0.5,
+      "stake_price": 1.93,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.480986157922968,
+        "form_adj": -0.002280000000000002,
+        "pitcher_quality_adj": -0.2132,
+        "adversity_adj": -0.0007111111111111068,
+        "arsenal_adj": 0.0032814862722055386,
+        "home_road_adj": 0.0,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.0009000000000000008,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.0002875761884089528,
+        "batters_faced_adj": -0.01801428571428572,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.008333333333333333
+      },
+      "totals": {
+        "line": 8.0,
+        "side": null,
+        "units": 0.0,
+        "price": null,
+        "reason": "pas de value nette sur le Total",
+        "expected_total": 9.560285850296957
+      }
+    },
+    {
+      "game_pk": 824313,
+      "home_team": "Colorado Rockies",
+      "away_team": "Baltimore Orioles",
+      "p_home": 0.4914771541802437,
+      "best_side": "home",
+      "best_edge": 0.06397715418024363,
+      "stake_units": 1.0,
+      "stake_price": 2.28,
+      "stake_reasons": [
+        "score fort mais porté par un seul facteur -- mise prudente en attendant confirmation d'un second (pas de 2u sur un facteur isolé, même solide)",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.377,
+        "form_adj": -0.014759999999999999,
+        "pitcher_quality_adj": -0.008450000000000051,
+        "adversity_adj": 0.008408888888888893,
+        "arsenal_adj": 0.00374396317221177,
+        "home_road_adj": 0.12150000000000004,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.001900000000000002,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.0021343021191430134,
+        "batters_faced_adj": 0.0,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.0
+      },
+      "totals": {
+        "line": 11.0,
+        "side": "over",
+        "units": 0.5,
+        "price": 1.76,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 13.065040312974466
+      }
+    },
+    {
+      "game_pk": 823984,
+      "home_team": "Los Angeles Angels",
+      "away_team": "New York Yankees",
+      "p_home": 0.1094281134836035,
+      "best_side": "away",
+      "best_edge": 0.26288692231591926,
+      "stake_units": 0.5,
+      "stake_price": 1.53,
+      "stake_reasons": [
+        "edge très large vs Pinnacle seul -- suspect, mise plafonnée par précaution"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.32429913799798094,
+        "form_adj": -0.021719999999999993,
+        "pitcher_quality_adj": -0.08255000000000004,
+        "adversity_adj": -0.0054844444444444385,
+        "arsenal_adj": -0.003781400000000004,
+        "home_road_adj": -0.08750000000000001,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.0005000000000000004,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.007431846736599626,
+        "batters_faced_adj": -0.01107,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.004166666666666667
+      },
+      "totals": {
+        "line": 7.5,
+        "side": "over",
+        "units": 0.5,
+        "price": 1.82,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 10.870741518288476
+      }
+    },
+    {
+      "game_pk": 825038,
+      "home_team": "Arizona Diamondbacks",
+      "away_team": "Philadelphia Phillies",
+      "p_home": 0.42466677353966914,
+      "best_side": "away",
+      "best_edge": 0.03980023153647294,
+      "stake_units": 1.0,
+      "stake_price": 1.72,
+      "stake_reasons": [
+        "edge confirmé par un signal combiné réel, sans être extrême",
+        "Unibet et Pinnacle d'accord entre eux (info seulement, ne change plus la mise)"
+      ],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": false,
+      "components": {
+        "baseline": 0.4597382989431305,
+        "form_adj": -0.004799999999999991,
+        "pitcher_quality_adj": -0.059150000000000015,
+        "adversity_adj": 0.003084444444444445,
+        "arsenal_adj": 0.004369230798274004,
+        "home_road_adj": 0.0014999999999999903,
+        "daynight_adj": 0.0,
+        "platoon_adj": 0.008400000000000008,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": 0.0048114660204868365,
+        "batters_faced_adj": 0.006713333333333336,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": 0.0
+      },
+      "totals": {
+        "line": 7.5,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.74,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 5.379872127143006
+      }
+    },
+    {
+      "game_pk": 823908,
+      "home_team": "Los Angeles Dodgers",
+      "away_team": "St. Louis Cardinals",
+      "p_home": 0.6517353753008467,
+      "best_side": "home",
+      "best_edge": 0.014942922470657982,
+      "stake_units": 0.0,
+      "stake_price": null,
+      "stake_reasons": [],
+      "books_agree": true,
+      "home_lineup_used": true,
+      "away_lineup_used": true,
+      "components": {
+        "baseline": 0.6057069802507448,
+        "form_adj": 0.012719999999999997,
+        "pitcher_quality_adj": -0.09425000000000001,
+        "adversity_adj": 0.004352222222222224,
+        "arsenal_adj": 0.00024312710778656428,
+        "home_road_adj": 0.12050000000000001,
+        "daynight_adj": 0.0,
+        "platoon_adj": -0.0005000000000000006,
+        "vs_team_adj": 0.0,
+        "playstyle_adj": -0.00044457332752575844,
+        "batters_faced_adj": 0.007574285714285714,
+        "rest_adj": 0.0,
+        "bullpen_adj": 0.0,
+        "h2h_adj": -0.0041666666666666675
+      },
+      "totals": {
+        "line": 9.0,
+        "side": "under",
+        "units": 0.5,
+        "price": 1.7,
+        "reason": "edge très large -- suspect, mise réduite par précaution",
+        "expected_total": 6.259092621390035
+      }
+    }
+  ],
+  "collection_errors": []
+}
