@@ -1,5 +1,5 @@
 {
-  "balance": 68.27999999999989,
+  "balance": 72.59065217391294,
   "history": [
     {
       "date": "2026-07-21",
@@ -4010,6 +4010,136 @@
       "won": false,
       "pnl": -1.0,
       "balance_after": 68.27999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824472,
+      "team": "San Diego Padres",
+      "units": 1.0,
+      "price": 1.71,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 67.27999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 822929,
+      "team": "Tampa Bay Rays",
+      "units": 1.0,
+      "price": 1.7,
+      "won": true,
+      "pnl": 0.7,
+      "balance_after": 67.97999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824391,
+      "team": "Toronto Blue Jays",
+      "units": 1.0,
+      "price": 2.48,
+      "won": false,
+      "pnl": -1.0,
+      "balance_after": 66.97999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824716,
+      "team": "Seattle Mariners",
+      "units": 0.5,
+      "price": 2.0,
+      "won": true,
+      "pnl": 0.5,
+      "balance_after": 67.47999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 822687,
+      "team": "Atlanta Braves",
+      "units": 0.5,
+      "price": 1.68,
+      "won": false,
+      "pnl": -0.5,
+      "balance_after": 66.97999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 823661,
+      "team": "Minnesota Twins",
+      "units": 1.0,
+      "price": 1.88,
+      "won": true,
+      "pnl": 0.8799999999999999,
+      "balance_after": 67.85999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824070,
+      "team": "Miami Marlins",
+      "units": 1.0,
+      "price": 2.0,
+      "won": true,
+      "pnl": 1.0,
+      "balance_after": 68.85999999999989
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824633,
+      "team": "Milwaukee Brewers",
+      "units": 0.5,
+      "price": 2.1413043478260865,
+      "won": true,
+      "pnl": 0.5706521739130432,
+      "balance_after": 69.43065217391293
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 822854,
+      "team": "Texas Rangers",
+      "units": 1.0,
+      "price": 1.43,
+      "won": true,
+      "pnl": 0.42999999999999994,
+      "balance_after": 69.86065217391294
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824148,
+      "team": "Chicago White Sox",
+      "units": 0.5,
+      "price": 1.93,
+      "won": true,
+      "pnl": 0.46499999999999997,
+      "balance_after": 70.32565217391294
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 824313,
+      "team": "Colorado Rockies",
+      "units": 1.0,
+      "price": 2.28,
+      "won": true,
+      "pnl": 1.2799999999999998,
+      "balance_after": 71.60565217391294
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 823984,
+      "team": "New York Yankees",
+      "units": 0.5,
+      "price": 1.53,
+      "won": true,
+      "pnl": 0.265,
+      "balance_after": 71.87065217391294
+    },
+    {
+      "date": "2026-09-01",
+      "game_pk": 825038,
+      "team": "Philadelphia Phillies",
+      "units": 1.0,
+      "price": 1.72,
+      "won": true,
+      "pnl": 0.72,
+      "balance_after": 72.59065217391294
     }
   ]
 }
